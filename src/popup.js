@@ -39,40 +39,31 @@ function getCurrentTabUrl(callback) {
 
 }
 
-/**
- * @param {string} currentUrl - current tab url
- * @param {function(object)} callback - Called when AJAX response is received.
- * @param {function(string)} errorCallback - Called when AJAX call fails.
- */
-function fetchInfo(currentUrl, callback, errorCallback) {
-  var searchUrl = 'https://httprequestecho.appspot.com/api?q=' + encodeURIComponent(currentUrl);
-  var x = new XMLHttpRequest();
-  x.open('GET', searchUrl);
-  x.responseType = 'json';
-  x.onload = function() {
-    var response = x.response;
-    console.debug(x.response);
-    callback(x.response);
-  };
-  x.onerror = function() {
-    errorCallback('due to network error');
-  };
-  x.send();
+var renderStatus = console.debug;
+
+function parseHost(url) {
+  var a = document.createElement('a');
+  a.href = url;
+  return a.host;
 }
 
-function renderStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
+function isManageable(host) {
+  return host === 'localhost' || host.indexOf('.') >= 0;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   getCurrentTabUrl(function(url) {
     renderStatus('Popup loaded');
-    fetchInfo(url, function(data) {
-      renderStatus('Fetching info');
-      var resultElement = document.getElementById('result');
-      resultElement.innerText = JSON.stringify(data, null, 2);
-    }, function(errorMessage) {
-      renderStatus('Processing failed ' + errorMessage);
-    });
+    var manageCurrentLink = document.getElementById('manage-current');
+    var host = parseHost(url);
+    renderStatus('host', host);
+    if (isManageable(host)) {
+      manageCurrentLink.href = manageCurrentLink.href + encodeURIComponent(host);
+      manageCurrentLink.hidden = false;
+    } else {
+      renderStatus('host not manageable', host);
+    }
+    
+    
   });
 });
