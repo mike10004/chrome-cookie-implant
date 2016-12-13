@@ -37,91 +37,25 @@ function getCurrentTabUrl(callback) {
     callback(url);
   });
 
-  // Most methods of the Chrome extension APIs are asynchronous. This means that
-  // you CANNOT do something like this:
-  //
-  // var url;
-  // chrome.tabs.query(queryInfo, function(tabs) {
-  //   url = tabs[0].url;
-  // });
-  // alert(url); // Shows "undefined", because chrome.tabs.query is async.
 }
 
-var IMAGES = [
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Justizpalast_at_dusk_2.JPG/256px-Justizpalast_at_dusk_2.JPG',
-    width: 256,
-    height: 159
-  },
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/SCADTA_Junkers_W_34_%22Magdalena%22.jpg/256px-SCADTA_Junkers_W_34_%22Magdalena%22.jpg',
-    width: 256,
-    height: 165
-  },
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Pan_American_Airways_Sikorsky_S-42_%22Pan_American_Clipper%22_in_flight_over_the_under-construction_San_Francisco-Oakland_Bay_Bridge.jpg/256px-Pan_American_Airways_Sikorsky_S-42_%22Pan_American_Clipper%22_in_flight_over_the_under-construction_San_Francisco-Oakland_Bay_Bridge.jpg',
-    width: 256,
-    height: 190
-  },
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Fairchild_JK-1_outside_Fairchild_Airplanes_hangar.jpg/256px-Fairchild_JK-1_outside_Fairchild_Airplanes_hangar.jpg',
-    width: 256,
-    height: 197
-  },
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/First_flight_by_St._Petersburg-Tampa_Airboat_Line.jpg/256px-First_flight_by_St._Petersburg-Tampa_Airboat_Line.jpg',
-    width: 256,
-    height: 203
-  },
-  {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Left_side_view_of_Delta_Air_Lines_Douglas_DC-9_%28N3304L%29_taking_off.jpg/256px-Left_side_view_of_Delta_Air_Lines_Douglas_DC-9_%28N3304L%29_taking_off.jpg',
-    width: 256,
-    height: 207
-  }
-];
-
-var imageCursor = 0;
-
 /**
- * @param {string} searchTerm - Search term for Google Image search.
- * @param {function(string,number,number)} callback - Called when an image has
- *   been found. The callback gets the URL, width and height of the image.
- * @param {function(string)} errorCallback - Called when the image is not found.
- *   The callback gets a string that describes the failure reason.
+ * @param {string} currentUrl - current tab url
+ * @param {function(object)} callback - Called when AJAX response is received.
+ * @param {function(string)} errorCallback - Called when AJAX call fails.
  */
-function getImageUrl(searchTerm, callback, errorCallback) {
-  // Google image search - 100 searches per day.
-  // https://developers.google.com/image-search/
-  var searchUrl = 'https://httprequestecho.appspot.com/api?q=' + encodeURIComponent(searchTerm);
+function fetchInfo(currentUrl, callback, errorCallback) {
+  var searchUrl = 'https://httprequestecho.appspot.com/api?q=' + encodeURIComponent(currentUrl);
   var x = new XMLHttpRequest();
   x.open('GET', searchUrl);
-  // The Google image search API responds with JSON, so let Chrome parse it.
   x.responseType = 'json';
   x.onload = function() {
-    // Parse and process the response from Google Image Search.
     var response = x.response;
-    console.debug(response);
-    // if (!response || !response.responseData || !response.responseData.results ||
-    //     response.responseData.results.length === 0) {
-    //   errorCallback('No response from Google Image search!');
-    //   return;
-    // }
-    // var firstResult = response.responseData.results[0];
-    // // Take the thumbnail instead of the full image to get an approximately
-    // // consistent image size.
-    // var imageUrl = firstResult.tbUrl;
-    var image = IMAGES[imageCursor++];
-    var imageUrl = image.url;
-    var width = image.width, height = image.height;
-    // var width = parseInt(firstResult.tbWidth);
-    // var height = parseInt(firstResult.tbHeight);
-    console.assert(
-        typeof imageUrl == 'string' && !isNaN(width) && !isNaN(height),
-        'Unexpected respose from the Google Image Search API!');
-    callback(imageUrl, width, height);
+    console.debug(x.response);
+    callback(x.response);
   };
   x.onerror = function() {
-    errorCallback('Network error.');
+    errorCallback('due to network error');
   };
   x.send();
 }
@@ -132,25 +66,13 @@ function renderStatus(statusText) {
 
 document.addEventListener('DOMContentLoaded', function() {
   getCurrentTabUrl(function(url) {
-    // Put the image URL in Google search.
-    renderStatus('Performing Google Image search for ' + url);
-
-    getImageUrl(url, function(imageUrl, width, height) {
-
-      renderStatus('Search term: ' + url + '\n' +
-          'Google image search result: ' + imageUrl);
-      var imageResult = document.getElementById('image-result');
-      // Explicitly set the width/height to minimize the number of reflows. For
-      // a single image, this does not matter, but if you're going to embed
-      // multiple external images in your page, then the absence of width/height
-      // attributes causes the popup to resize multiple times.
-      imageResult.width = width;
-      imageResult.height = height;
-      imageResult.src = imageUrl;
-      imageResult.hidden = false;
-
+    renderStatus('Popup loaded');
+    fetchInfo(url, function(data) {
+      renderStatus('Fetching info');
+      var resultElement = document.getElementById('result');
+      resultElement.innerText = JSON.stringify(data, null, 2);
     }, function(errorMessage) {
-      renderStatus('Cannot display image. ' + errorMessage);
+      renderStatus('Processing failed ' + errorMessage);
     });
   });
 });
