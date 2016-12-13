@@ -15,21 +15,13 @@
     "activeTab",
     "cookies",
     "http://*/*",
-    "https://*/*",
-		"tabs",
-		"cookies",
-		"contextMenus",
-		"unlimitedStorage",
-		"notifications",
-		"storage",
-		"clipboardWrite"
+    "https://*/*"
   ],
-	
-	"homepage_url": "http://www.editthiscookie.com/",
-	
-	"options_page": "options.html",
-	
-	"minimum_chrome_version": "18",
-	"update_url": "https://github.com/mike10004/chrome-cookie-implant"
+  
+  "homepage_url": "https://github.com/mike10004/chrome-cookie-implant",
+  
+  "options_page": "options.html",
+  
+  "minimum_chrome_version": "18"
 }
 

@@ -10,7 +10,7 @@ function parseQuery() {
             if (typeof(list) === 'undefined') {
                 obj[pair[0]] = list = [];
             }
-            list.push(pair[1]);
+            list.push(decodeURIComponent(pair[1]));
         }
     }
     return obj;
@@ -35,17 +35,33 @@ function parseImportSeed(importSeed, query, badSeedHandler) {
     return result;
 }
 
+/**
+ * @param {function(number, object, boolean, object, string)} setCookieCallback the cookie callback; 
+ *      parameters are cookie index (integer), input cookie object (or null), import success (boolean), 
+ *      output cookie object (or null if !success), error info (string)
+ */
 function processImports(input, setCookieCallback) {
     var cookieImports = input['import'] || [];
     var newCookies = cookieImports
-        .map(importSeed => parseImportSeed(importSeed, input))
-        .filter(c => !!c);
-    if (newCookies.length === cookieImports.length) {
-        newCookies.forEach(newCookie => {
-            chrome.cookies.set(newCookie, setCookieCallback);
+        .map(importSeed => parseImportSeed(importSeed, input));
+    var numGoodCookies = newCookies.filter(c => !!c).length;
+    if (numGoodCookies === cookieImports.length) {
+        newCookies.forEach((newCookie, index) => {
+            if (newCookie) {
+                try {
+                    chrome.cookies.set(newCookie, s => {
+                        setCookieCallback(index, newCookie, true, s, "OK");
+                    });
+                } catch (err) {
+                    console.info("chrome.cookies.set failed", err);
+                    setCookieCallback(index, newCookie, false, null, err.toString());
+                }
+            } else {
+                setCookieCallback(index, null, false, null, 'parse_failed');
+            }
         })
     } else {
-        console.info("aborting cookie import due to seed parsing failures on " + (cookieImports.length - newCookies.length) + " seeds");
+        console.info("aborting cookie import due to seed parsing failures on " + (cookieImports.length - numGoodCookies) + " seeds");
     }
 }
 
@@ -70,13 +86,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var inputDiv = document.getElementById('input');
     inputDiv.appendChild(inputTable);
-    var outputTable = document.createElement('table');
-    outputTable.id = 'import-results';
-    processImports(query, s => {
-        console.debug('chrome.cookies.set', newCookie, s);
+    var resultTable = document.createElement('table');
+    resultTable.id = 'import-results';
+    var result = {
+        imports: []
+    };
+    processImports(query, (index, newCookie, success, s) => {
+        console.debug('chrome.cookies.set', index, newCookie, success, s);
+        result.imports.push({
+            'index': index,
+            'success': success,
+            'message': s
+        });
         var cookieInfo = [newCookie.domain, newCookie.path, newCookie.name, newCookie.value];
-        outputTable.appendChild(createTableRow(cookieInfo));
+        resultTable.appendChild(createTableRow(cookieInfo));
     });
+    var resultDiv = document.getElementById('result');
+    resultDiv.appendChild(resultTable);
     var outputDiv = document.getElementById('output');
-    outputDiv.appendChild(outputTable);
+    outputDiv.innerText = JSON.stringify(result, null, 2);
+
 });
