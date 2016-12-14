@@ -42,39 +42,38 @@ function parseImportSeed(importSeed, query, badSeedHandler) {
  */
 function processImports(input, setCookieCallback) {
     var cookieImports = input['import'] || [];
+    var numImportSeeds = cookieImports.length;
     var newCookies = cookieImports
         .map(importSeed => parseImportSeed(importSeed, input));
     var numGoodCookies = newCookies.filter(c => !!c).length;
-    if (numGoodCookies === cookieImports.length) {
-        newCookies.forEach((newCookie, index) => {
-            if (newCookie) {
-                try {
-                    chrome.cookies.set(newCookie, s => {
-                        setCookieCallback(index, newCookie, true, s, "OK");
-                    });
-                } catch (err) {
-                    console.info("chrome.cookies.set failed", err);
-                    setCookieCallback(index, newCookie, false, null, err.toString());
-                }
-            } else {
-                setCookieCallback(index, null, false, null, 'parse_failed');
+    console.debug(numGoodCookies + " good cookies among " + numImportSeeds + " import seeds");
+    newCookies.forEach((newCookie, index) => {
+        if (newCookie) {
+            try {
+                chrome.cookies.set(newCookie, outCookie => {
+                    setCookieCallback(index, numImportSeeds, newCookie, true, outCookie, "OK");
+                });
+            } catch (err) {
+                console.info("chrome.cookies.set failed", err);
+                setCookieCallback(index, numImportSeeds, newCookie, false, null, err.toString());
             }
-        })
-    } else {
-        console.info("aborting cookie import due to seed parsing failures on " + (cookieImports.length - numGoodCookies) + " seeds");
-    }
+        } else {
+            setCookieCallback(index, numImportSeeds, null, false, null, 'seed_parse_failed');
+        }
+    })
 }
 
-function createTableCell(value) {
+function createTableCell(value, wrapTextInInput) {
     var cell = document.createElement('td');
-    cell.innerText = value;
+    if (wrapTextInInput) {
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = value;
+        cell.appendChild(input);
+    } else {
+        cell.innerText = value;
+    }
     return cell;
-}
-
-function createTableRow(values, tag) {
-    var row = document.createElement(tag || 'tr');
-    values.map(createTableCell).forEach(cell => row.appendChild(cell));
-    return row;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -82,28 +81,39 @@ document.addEventListener('DOMContentLoaded', function() {
     inputTable.id = 'input-params';
     var query = parseQuery();
     for (var name in query) {
-        inputTable.appendChild(createTableRow([name, query[name]]));
+        var values = query[name];
+        values.forEach(value => {
+            var nameCell = createTableCell(name);
+            var valueCell = createTableCell(value, true);
+            var row = document.createElement('tr');
+            [nameCell, valueCell].forEach(cell => row.appendChild(cell));
+            inputTable.appendChild(row);
+        });
     }
     var inputDiv = document.getElementById('input');
     inputDiv.appendChild(inputTable);
     var resultTable = document.createElement('table');
     resultTable.id = 'import-results';
-    var result = {
+    var output = {
         imports: []
     };
-    processImports(query, (index, newCookie, success, s) => {
-        console.debug('chrome.cookies.set', index, newCookie, success, s);
-        result.imports.push({
+    var outputDiv = document.getElementById('output');
+    processImports(query, (index, numImportSeeds, newCookie, success, outCookie, s) => {
+        console.debug('chrome.cookies.set', index, newCookie, success, outCookie, s);
+        output.imports.push({
             'index': index,
             'success': success,
-            'message': s
+            'savedCookie': outCookie,
+            'message': s || null
         });
-        var cookieInfo = [newCookie.domain, newCookie.path, newCookie.name, newCookie.value];
-        resultTable.appendChild(createTableRow(cookieInfo));
+        var cookieInfoCells = [createTableCell(outCookie.domain), createTableCell(outCookie.path), createTableCell(outCookie.name), createTableCell(outCookie.value, true)];
+        var row = document.createElement(tag || 'tr');
+        cookieInfoCells.forEach(c => row.appendChild(c));
+        resultTable.appendChild(row);
+        if (output.imports.length == numImportSeeds) {
+            outputDiv.innerText = JSON.stringify(output, null, 2);
+            var resultDiv = document.getElementById('result');
+            resultDiv.appendChild(resultTable);
+        }
     });
-    var resultDiv = document.getElementById('result');
-    resultDiv.appendChild(resultTable);
-    var outputDiv = document.getElementById('output');
-    outputDiv.innerText = JSON.stringify(result, null, 2);
-
 });

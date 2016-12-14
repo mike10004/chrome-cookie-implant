@@ -49,7 +49,5 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       renderStatus('host not manageable', host);
     }
-    
-    
   });
 });
