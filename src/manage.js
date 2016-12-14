@@ -98,6 +98,10 @@ document.addEventListener('DOMContentLoaded', function() {
         imports: []
     };
     var outputDiv = document.getElementById('output');
+    outputDiv.innerText = JSON.stringify({
+        status: 'not_yet_processed'
+    });
+    var resultTableHeader; 
     processImports(query, (index, numImportSeeds, newCookie, success, outCookie, s) => {
         console.debug('chrome.cookies.set', index, newCookie, success, outCookie, s);
         output.imports.push({
@@ -106,14 +110,29 @@ document.addEventListener('DOMContentLoaded', function() {
             'savedCookie': outCookie,
             'message': s || null
         });
-        var cookieInfoCells = [createTableCell(outCookie.domain), createTableCell(outCookie.path), createTableCell(outCookie.name), createTableCell(outCookie.value, true)];
-        var row = document.createElement(tag || 'tr');
+        var cookieInfoCells = [createTableCell(outCookie.domain), 
+                createTableCell(outCookie.path), 
+                createTableCell(outCookie.name), 
+                createTableCell(outCookie.value, true)];
+        var row = document.createElement('tr');
         cookieInfoCells.forEach(c => row.appendChild(c));
+        if (typeof(resultTableHeader) === 'undefined') {
+            resultTableHeader = document.createElement('tr');
+            ['Domain', 'Path', 'Name', 'Value']
+                    .map(t => createTableCell(t, false))
+                    .forEach(c => resultTableHeader.appendChild(c));
+            resultTable.appendChild(resultTableHeader);
+        }
         resultTable.appendChild(row);
         if (output.imports.length == numImportSeeds) {
+            output.status = 'all_imports_processed';
             outputDiv.innerText = JSON.stringify(output, null, 2);
             var resultDiv = document.getElementById('result');
             resultDiv.appendChild(resultTable);
+        } else {
+            outputDiv.innerText = JSON.stringify({
+                status: 'some_imports_processed'
+            });
         }
     });
 });
