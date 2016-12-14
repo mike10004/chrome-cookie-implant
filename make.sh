@@ -28,17 +28,21 @@ fi
 $CHROME --pack-extension=${PWD}/${INPUT} "${KEY_OPT}" 2>/dev/null || fail "failed to pack" $?
 
 TEMPFILE="${PWD}/${INPUT}.crx"
+EXT_ID=$(python crxmetadata.py --extension-id "$TEMPFILE")
+if [ -z "$EXT_ID" ] ; then
+  fail "could not parse extension id from file $TEMPFILE"
+fi
 
-OUTNAME="${OUTPUT}"
+OUTNAME="${EXT_ID}"
 VERSION=$(python -c 'import sys, json; print json.load(sys.stdin)["version"]' < "${INPUT}/manifest.json")
 if [ -n "$VERSION" ] ; then
   OUTNAME="${OUTNAME}-${VERSION}"
 fi
 OUTNAME="${OUTNAME}.crx"
 mv "$TEMPFILE" "$OUTNAME"
-EXT_ID=$(python crxmetadata.py --extension-id "$OUTNAME")
+
 STATUS=$?
 if [ $STATUS -ne 0 ]; then
   fail "crx metadata parse failure" $?
 fi
-echo "${OUTNAME}: $EXT_ID"
+echo "${OUTNAME}"
