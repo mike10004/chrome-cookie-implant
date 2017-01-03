@@ -11,6 +11,4 @@ before_install:
   - which chromium-browser || true
   - which google-chrome || true
 install: xvfb-run --auto-servernum bash make.sh
-before_script:
-  - find . -type f
 script: mvn -f webdriver-tests/pom.xml -B verify
