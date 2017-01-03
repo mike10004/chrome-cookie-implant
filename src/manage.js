@@ -110,10 +110,12 @@ document.addEventListener('DOMContentLoaded', function() {
             'savedCookie': outCookie,
             'message': s || null
         });
-        var cookieInfoCells = [createTableCell(outCookie.domain), 
-                createTableCell(outCookie.path), 
-                createTableCell(outCookie.name), 
-                createTableCell(outCookie.value, true)];
+        var cookieInfoCells = outCookie === null 
+                ? ['', '', '', ''].map(createTableCell) 
+                : [createTableCell(outCookie.domain), 
+                    createTableCell(outCookie.path), 
+                    createTableCell(outCookie.name), 
+                    createTableCell(outCookie.value, true)];
         var row = document.createElement('tr');
         cookieInfoCells.forEach(c => row.appendChild(c));
         if (typeof(resultTableHeader) === 'undefined') {
