@@ -1,6 +1,6 @@
 /build/
-*.crx
-*.pem
+/*.crx
+/*.pem
 
 .vscode
 /webdriver-tests/target
