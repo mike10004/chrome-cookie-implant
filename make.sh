@@ -51,12 +51,9 @@ else
   OUTNAME="${FINAL_NAME}"
 fi
 
-mv "$TEMPFILE" "$OUTNAME"
+mkdir -p $(dirname "$OUTNAME")
+mv "$TEMPFILE" "$OUTNAME" || fail "could not move crx file to final destination" $?
 
-STATUS=$?
-if [ $STATUS -ne 0 ]; then
-  fail "crx metadata parse failure" $STATUS
-fi
 echo "${OUTNAME}"
 if [ ! -f "${OUTNAME}" ] ; then
   fail "not created: ${OUTNAME}" 2
