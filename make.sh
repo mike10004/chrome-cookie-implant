@@ -4,16 +4,15 @@ if [ -n "$1" ] ; then
   FINAL_NAME="$1"
 fi
 
+fail() {
+    echo "make.sh:" $1 >&2
+    exit $2
+}
+
 CHROME=$(which google-chrome)
 if [ -z "$CHROME" ] ; then
-  echo "make.sh: google-chrome is not installed" >&2
-  exit 1
+  fail "google-chrome is not installed" 1
 fi
-
-fail() {
-    echo $1 >&2
-    exit $2 
-}
 
 INPUT="src"
 OUTPUT="chrome-cookie-implant"
@@ -23,13 +22,15 @@ rm -rf "./${INPUT}.crx" || fail "failed to remove existing .crx" $?
 
 KEY_FILE="${PWD}/${INPUT}.pem"
 
+CHROME_ARGS="--pack-extension=${PWD}/${INPUT}"
+
 if [ -f "${KEY_FILE}" ] ; then
-    KEY_OPT="--pack-extension-key=${KEY_FILE}"
+    CHROME_ARGS="${CHROME_ARGS} --pack-extension-key=${KEY_FILE}"
 else
     echo "make.sh: no existing key; expected at ${KEY_FILE}" >&2
 fi
 
-$CHROME --pack-extension=${PWD}/${INPUT} "${KEY_OPT}" 2>/dev/null || fail "failed to pack" $?
+$CHROME ${CHROME_ARGS} 2>/dev/null || fail "failed to pack" $?
 
 TEMPFILE="${PWD}/${INPUT}.crx"
 EXT_ID=$(python crxmetadata.py --extension-id "$TEMPFILE")
