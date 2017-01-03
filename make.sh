@@ -30,7 +30,9 @@ else
     echo "make.sh: no existing key; expected at ${KEY_FILE}" >&2
 fi
 
-$CHROME ${CHROME_ARGS} 2>/dev/null || fail "failed to pack" $?
+echo $CHROME "${CHROME_ARGS}" >&2
+
+$CHROME ${CHROME_ARGS} || fail "failed to pack" $?
 
 TEMPFILE="${PWD}/${INPUT}.crx"
 EXT_ID=$(python crxmetadata.py --extension-id "$TEMPFILE")
