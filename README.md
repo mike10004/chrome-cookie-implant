@@ -1,3 +1,5 @@
+[![Travis build status](https://img.shields.io/travis/mike10004/chrome-cookie-implant.svg)](https://travis-ci.org/mike10004/chrome-cookie-implant)
+
 Chrome Cookie Implant
 =====================
 
