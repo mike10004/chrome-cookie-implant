@@ -30,12 +30,15 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @SuppressWarnings("Guava")
 public class ChromeCookieImplantTest {
+
+    private static final boolean debug = false;
 
     @Rule
     public XvfbRule xvfb = XvfbRule.builder().disabledOnWindows().build();
@@ -111,10 +114,18 @@ public class ChromeCookieImplantTest {
     private static Function<WebDriver, String> outputStatusNotNotYetProcessed() {
         return new Function<WebDriver, String>() {
             private final JsonParser jsonParser = new JsonParser();
+            private final AtomicInteger pollCounter = new AtomicInteger(0);
             @Override
             public String apply(WebDriver webDriver) {
-                WebElement outputElement = new WebDriverWait(webDriver, 3).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output")));
+                WebElement outputElement = new WebDriverWait(webDriver, 3)
+                        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output")));
                 String outputJson = outputElement.getText();
+                if (debug) {
+                    System.out.format("cookie implant extension output %d:", pollCounter.incrementAndGet());
+                    System.out.println();
+                    System.out.println(outputJson);
+                    System.out.println();
+                }
                 String status = jsonParser.parse(outputJson).getAsJsonObject().get("status").getAsString();
                 if ("not_yet_processed".equals(status)) {
                     return null; // keep waiting
