@@ -9,8 +9,7 @@ fail() {
     exit $2
 }
 
-#CHROME=$(which google-chrome)
-CHROME=$(which chromium-browser)
+CHROME=$(which google-chrome || which chromium-browser)
 if [ -z "$CHROME" ] ; then
   fail "chromium-browser/google-chrome not installed" 1
 fi
