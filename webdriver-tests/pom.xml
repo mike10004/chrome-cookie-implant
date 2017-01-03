@@ -50,8 +50,10 @@
                         </goals>
                         <configuration>
                             <workingDirectory>${project.basedir}/..</workingDirectory>
-                            <executable>bash</executable>
+                            <executable>xvfb-run</executable>
                             <arguments>
+                                <argument>--auto-servernum</argument>
+                                <argument>bash</argument>
                                 <argument>make.sh</argument>
                                 <argument>${extension.file.pathname}</argument>
                             </arguments>

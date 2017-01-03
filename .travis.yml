@@ -10,5 +10,5 @@ before_install:
   - dpkg-query -l xvfb chromium-browser
   - which chromium-browser || true
   - which google-chrome || true
-install: bash make.sh
+install: xvfb-run --auto-servernum bash make.sh
 script: mvn -f webdriver-tests/pom.xml -B verify
