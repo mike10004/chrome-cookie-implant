@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -n "$1" ] ; then
+  FINAL_NAME="$1"
+fi
+
 CHROME=$(which google-chrome)
 if [ -z "$CHROME" ] ; then
   echo "make.sh: google-chrome is not installed" >&2
@@ -33,16 +37,24 @@ if [ -z "$EXT_ID" ] ; then
   fail "could not parse extension id from file $TEMPFILE"
 fi
 
-OUTNAME="${EXT_ID}"
-VERSION=$(python -c 'import sys, json; print json.load(sys.stdin)["version"]' < "${INPUT}/manifest.json")
-if [ -n "$VERSION" ] ; then
-  OUTNAME="${OUTNAME}-${VERSION}"
+if [ -z "$FINAL_NAME" ] ; then
+  OUTNAME="${EXT_ID}"
+  VERSION=$(python -c 'import sys, json; print json.load(sys.stdin)["version"]' < "${INPUT}/manifest.json")
+  if [ -n "$VERSION" ] ; then
+    OUTNAME="${OUTNAME}-${VERSION}"
+  fi
+  OUTNAME="${OUTNAME}.crx"
+else
+  OUTNAME="${FINAL_NAME}"
 fi
-OUTNAME="${OUTNAME}.crx"
+
 mv "$TEMPFILE" "$OUTNAME"
 
 STATUS=$?
 if [ $STATUS -ne 0 ]; then
-  fail "crx metadata parse failure" $?
+  fail "crx metadata parse failure" $STATUS
 fi
 echo "${OUTNAME}"
+if [ ! -f "${OUTNAME}" ] ; then
+  fail "not created: ${OUTNAME}" 2
+fi

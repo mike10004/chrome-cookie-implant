@@ -1,0 +1,12 @@
+dist: trusty
+sudo: false
+group: beta
+language: java
+addons:
+  apt:
+    packages:
+    - chromium-browser
+before_install:
+  - dpkg-query -l xvfb chromium-browser
+install: bash make.sh
+script: mvn -f webdriver-tests/pom.xml -B verify
