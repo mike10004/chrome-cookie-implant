@@ -36,6 +36,31 @@ function parseImportSeed(importSeed, query, badSeedHandler) {
 }
 
 /**
+ * Sets the inner text of the output element to a string representation
+ * of the argument object.
+ * @param {MultiImportOutput} output output object
+ */
+function printOutput(output) {
+    var outputDiv = document.getElementById('output');
+    outputDiv.innerText = JSON.stringify(output, null, 2);
+}
+
+function createStageArray() {
+    var stages = [
+        'not_yet_processed',
+        'some_imports_processed',
+        'all_imports_processed'
+    ];
+    stages.first = stages[0];
+    stages.middle = stages[1];
+    stages.last = stages[stages.length - 1];
+    return stages;
+}
+
+
+
+/**
+ * @param {object} input parsed query string
  * @param {function(number, object, boolean, object, string)} setCookieCallback the cookie callback; 
  *      parameters are cookie index (integer), input cookie object (or null), import success (boolean), 
  *      output cookie object (or null if !success), error info (string)
@@ -60,7 +85,8 @@ function processImports(input, setCookieCallback) {
         } else {
             setCookieCallback(index, numImportSeeds, null, false, null, 'seed_parse_failed');
         }
-    })
+    });
+    return newCookies.length;
 }
 
 function createTableCell(value, wrapTextInInput) {
@@ -76,10 +102,29 @@ function createTableCell(value, wrapTextInInput) {
     return cell;
 }
 
+function MultiImportOutput(status, imports) {
+    this.status = status;
+    this.imports = imports || [];
+}
+
+function setReadableResult(result) {
+    var resultDiv = document.getElementById('result');
+    if (typeof(result) === 'string') {
+        resultDiv.innerHTML = result;
+    } else {
+        while (resultDiv.lastChild) {
+            resultDiv.removeChild(resultDiv.lastChild);
+        }
+        resultDiv.appendChild(result);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    var STAGES = createStageArray();
     var inputTable = document.createElement('table');
     inputTable.id = 'input-params';
     var query = parseQuery();
+    var numQueryParams = 0;
     for (var name in query) {
         var values = query[name];
         values.forEach(value => {
@@ -88,21 +133,21 @@ document.addEventListener('DOMContentLoaded', function() {
             var row = document.createElement('tr');
             [nameCell, valueCell].forEach(cell => row.appendChild(cell));
             inputTable.appendChild(row);
+            numQueryParams++;
         });
     }
     var inputDiv = document.getElementById('input');
-    inputDiv.appendChild(inputTable);
+    if (numQueryParams > 0) {
+        inputDiv.appendChild(inputTable);
+    } else {
+        inputDiv.innerText = 'No cookie implants requested';
+    }
     var resultTable = document.createElement('table');
     resultTable.id = 'import-results';
-    var output = {
-        imports: []
-    };
-    var outputDiv = document.getElementById('output');
-    outputDiv.innerText = JSON.stringify({
-        status: 'not_yet_processed'
-    });
+    var output = new MultiImportOutput(STAGES.first);
+    printOutput(output);
     var resultTableHeader; 
-    processImports(query, (index, numImportSeeds, newCookie, success, outCookie, s) => {
+    var numCookies = processImports(query, (index, numImportSeeds, newCookie, success, outCookie, s) => {
         console.debug('chrome.cookies.set', index, newCookie, success, outCookie, s);
         output.imports.push({
             'index': index,
@@ -127,14 +172,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         resultTable.appendChild(row);
         if (output.imports.length == numImportSeeds) {
-            output.status = 'all_imports_processed';
-            outputDiv.innerText = JSON.stringify(output, null, 2);
-            var resultDiv = document.getElementById('result');
-            resultDiv.appendChild(resultTable);
+            output.status = STAGES.last;
+            printOutput(output);
+            setReadableResult(resultTable);
         } else {
-            outputDiv.innerText = JSON.stringify({
-                status: 'some_imports_processed'
-            });
+            output.status = STAGES.middle;
+            printOutput(output);
         }
     });
+    if (numCookies === 0) {
+        output.status = STAGES.last;
+        printOutput(output);
+        setReadableResult('No processing performed');
+    }
 });

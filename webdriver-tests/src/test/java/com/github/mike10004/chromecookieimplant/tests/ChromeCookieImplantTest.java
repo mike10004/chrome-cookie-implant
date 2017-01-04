@@ -3,6 +3,7 @@ package com.github.mike10004.chromecookieimplant.tests;
 import com.github.mike10004.xvfbselenium.WebDriverSupport;
 import com.github.mike10004.xvfbtesting.XvfbRule;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.math.LongMath;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -38,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 @SuppressWarnings("Guava")
 public class ChromeCookieImplantTest {
 
-    private static final boolean debug = false;
+    private static final boolean debug = true;
 
     @Rule
     public XvfbRule xvfb = XvfbRule.builder().disabledOnWindows().build();
@@ -56,16 +57,16 @@ public class ChromeCookieImplantTest {
         }
     }
 
-    private File getExtensionFile() throws FileNotFoundException, URISyntaxException {
+    private static File getExtensionFile() throws FileNotFoundException, URISyntaxException {
         String resourcePath = "/chrome-cookie-implant.crx";
-        URL resource = getClass().getResource(resourcePath);
+        URL resource = ChromeCookieImplantTest.class.getResource(resourcePath);
         if (resource == null) {
             throw new FileNotFoundException("classpath:" + resourcePath);
         }
         return new File(resource.toURI());
     }
 
-    private String extractExtensionId(File crxFile) throws IOException {
+    private static String extractExtensionId(File crxFile) throws IOException {
         return new CrxMetadataParser().parse(crxFile).id;
     }
 
@@ -76,11 +77,7 @@ public class ChromeCookieImplantTest {
 
     @Test
     public void testSetCookie() throws Exception {
-        ChromeOptions options = new ChromeOptions();
-        File extensionFile = getExtensionFile();
-        String extensionId = extractExtensionId(extensionFile);
-        options.addExtensions(extensionFile);
-        ChromeDriver driver = WebDriverSupport.chromeInEnvironment(xvfb.getController().configureEnvironment(new HashMap<>())).create(options);
+        ChromeDriver driver = createDriver();
         try {
             String cookieJson = "{" +
                     "\"url\":\"http://httpbin.org/\"," +
@@ -94,8 +91,7 @@ public class ChromeCookieImplantTest {
             URI uri = new URI("chrome-extension", extensionId, "/manage.html", "import=" + cookieJson, null);
             System.out.println(uri);
             driver.get(uri.toString());
-            String status = new WebDriverWait(driver, 3).until(outputStatusNotNotYetProcessed());
-            assertEquals("status", "all_imports_processed", status);
+            new WebDriverWait(driver, 3).until(outputStatusAllProcessed());
             driver.get("http://httpbin.org/get");
             String httpbinHtml = driver.getPageSource();
             String httpbinJson = Jsoup.parse(httpbinHtml).getElementsByTag("body").first().text();
@@ -111,12 +107,41 @@ public class ChromeCookieImplantTest {
         }
     }
 
-    private static Function<WebDriver, String> outputStatusNotNotYetProcessed() {
-        return new Function<WebDriver, String>() {
+    @BeforeClass
+    public static void setUpClass()  throws Exception {
+        extensionFile = getExtensionFile();
+        extensionId = extractExtensionId(extensionFile);
+    }
+
+    private static File extensionFile;
+    private static String extensionId;
+
+    private ChromeDriver createDriver() throws IOException, URISyntaxException {
+        ChromeOptions options = new ChromeOptions();
+        options.addExtensions(extensionFile);
+        ChromeDriver driver = WebDriverSupport.chromeInEnvironment(xvfb.getController().configureEnvironment(new HashMap<>())).create(options);
+        return driver;
+    }
+
+    @Test
+    public void testSetNoCookies() throws Exception {
+        ChromeDriver driver = createDriver();
+        try {
+            URI uri = new URI("chrome-extension", extensionId, "/manage.html", null, null);
+            System.out.println(uri);
+            driver.get(uri.toString());
+            new WebDriverWait(driver, 3).until(outputStatusAllProcessed());
+        } finally {
+            driver.quit();
+        }
+    }
+
+    private static Predicate<WebDriver> outputStatusAllProcessed() {
+        return new Predicate<WebDriver>() {
             private final JsonParser jsonParser = new JsonParser();
             private final AtomicInteger pollCounter = new AtomicInteger(0);
             @Override
-            public String apply(WebDriver webDriver) {
+            public boolean apply(WebDriver webDriver) {
                 WebElement outputElement = new WebDriverWait(webDriver, 3)
                         .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output")));
                 String outputJson = outputElement.getText();
@@ -127,11 +152,7 @@ public class ChromeCookieImplantTest {
                     System.out.println();
                 }
                 String status = jsonParser.parse(outputJson).getAsJsonObject().get("status").getAsString();
-                if ("not_yet_processed".equals(status)) {
-                    return null; // keep waiting
-                } else {
-                    return status;
-                }
+                return "all_imports_processed".equals(status);
             }
         };
     }
