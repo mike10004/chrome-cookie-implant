@@ -3,6 +3,7 @@
 /*.pem
 
 .vscode
-/webdriver-tests/target
-/webdriver-tests/.idea/
-/webdriver-tests/*.iml
+/client-java/target/
+/client-java/.idea/
+/client-java/*.iml
+

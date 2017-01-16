@@ -3,6 +3,7 @@ package com.github.mike10004.chromecookieimplant;
 import com.github.mike10004.chromecookieimplant.CrxMetadata.CrxHeader;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.google.common.primitives.Ints;
@@ -23,14 +24,22 @@ public class CrxMetadataParser {
     }
 
     public CrxMetadata parse(File crxFile) throws IOException {
-        byte[] crxBytes = Files.toByteArray(crxFile);
-        CrxHeader crxHeader = readHeader(crxBytes);
-        CrxMetadata metadata = readMetadata(crxBytes, crxHeader);
+        return parse(Files.asByteSource(crxFile));
+    }
+
+    public CrxMetadata parse(ByteSource crxByteSource) throws IOException {
+        CrxHeader crxHeader = readHeader(crxByteSource);
+        CrxMetadata metadata = readMetadata(crxByteSource, crxHeader);
         return metadata;
     }
 
-    protected CrxMetadata readMetadata(byte[] crxBytes, CrxHeader header) throws IOException {
-        byte[] pubkeyBytes = slice(crxBytes, 16, header.pubkeyLength);
+    public CrxMetadata parse(byte[] bytes) throws IOException {
+        return parse(ByteSource.wrap(bytes));
+    }
+
+    protected CrxMetadata readMetadata(ByteSource crxByteSource, CrxHeader header) throws IOException {
+        ByteSource pubkeyByteSource = crxByteSource.slice(CRX_HEADER_LENGTH, header.pubkeyLength);
+        byte[] pubkeyBytes = pubkeyByteSource.read();
         String pubkey = new String(pubkeyBytes, StandardCharsets.US_ASCII);
         HashCode pubkeyHash = Hashing.sha256().hashBytes(pubkeyBytes);
         String digest = pubkeyHash.toString().toLowerCase(Locale.ROOT);
@@ -59,8 +68,11 @@ public class CrxMetadataParser {
         }
     }
 
-    protected CrxHeader readHeader(byte[] crxBytes) throws IOException {
-        byte[] headerBytes = slice(crxBytes, 0, 16);
+    private static final int CRX_HEADER_LENGTH = 16;
+
+    protected CrxHeader readHeader(ByteSource crxByteSource) throws IOException {
+        ByteSource headerByteSource = crxByteSource.slice(0, CRX_HEADER_LENGTH);
+        byte[] headerBytes = headerByteSource.read();
         try (LittleEndianDataInputStream in = new LittleEndianDataInputStream(new ByteArrayInputStream(headerBytes))) {
             byte[] value0Bytes = new byte[4];
             in.readFully(value0Bytes);
@@ -70,11 +82,5 @@ public class CrxMetadataParser {
             int value3 = Ints.checkedCast(UnsignedInteger.fromIntBits(in.readInt()).longValue());
             return new CrxHeader(value0, value1, pubkeyLength, value3);
         }
-    }
-
-    static byte[] slice(byte[] array, int start, int len) {
-        byte[] copied = new byte[len];
-        System.arraycopy(array, start, copied, 0, len);
-        return copied;
     }
 }
