@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.mike10004</groupId>
-    <artifactId>chrome-cookie-implant-tests</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>chrome-cookie-implant-client</artifactId>
+    <version>1.5-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <xvfb-manager.version>0.4</xvfb-manager.version>
-        <extension.file.pathname>${project.build.testOutputDirectory}/chrome-cookie-implant.crx</extension.file.pathname>
+        <extension.file.pathname>${project.build.outputDirectory}/chrome-cookie-implant.crx</extension.file.pathname>
     </properties>
 
     <build>
@@ -34,6 +34,11 @@
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.19.1</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                        </systemPropertyVariables>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -44,7 +49,7 @@
                 <executions>
                     <execution>
                         <id>make-crx</id>
-                        <phase>process-test-resources</phase>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -58,14 +63,6 @@
                                 <argument>${extension.file.pathname}</argument>
                             </arguments>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>do-test</id>
                     </execution>
                 </executions>
             </plugin>

@@ -1,6 +1,6 @@
-package com.github.mike10004.chromecookieimplant.tests;
+package com.github.mike10004.chromecookieimplant;
 
-import com.github.mike10004.chromecookieimplant.tests.CrxMetadata.CrxHeader;
+import com.github.mike10004.chromecookieimplant.CrxMetadata.CrxHeader;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;

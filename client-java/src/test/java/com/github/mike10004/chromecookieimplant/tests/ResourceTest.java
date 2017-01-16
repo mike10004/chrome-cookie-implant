@@ -6,10 +6,10 @@ import java.net.URL;
 
 import static org.junit.Assert.assertNotNull;
 
-public class PreparationTest {
+public class ResourceTest {
 
     @Test
-    public void makeWorked() throws Exception {
+    public void testPluginBuiltExtensionInClasspath() throws Exception {
         URL resource = getClass().getResource("/chrome-cookie-implant.crx");
         assertNotNull("resource not in test output dir", resource);
     }

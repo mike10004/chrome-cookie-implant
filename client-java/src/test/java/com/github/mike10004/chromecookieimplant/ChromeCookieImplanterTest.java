@@ -1,8 +1,7 @@
-package com.github.mike10004.chromecookieimplant.tests;
+package com.github.mike10004.chromecookieimplant;
 
 import com.github.mike10004.xvfbselenium.WebDriverSupport;
 import com.github.mike10004.xvfbtesting.XvfbRule;
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.math.LongMath;
 import com.google.gson.JsonElement;
@@ -12,8 +11,10 @@ import io.github.bonigarcia.wdm.ChromeDriverManager;
 import org.jsoup.Jsoup;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -23,23 +24,37 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
-@SuppressWarnings("Guava")
-public class ChromeCookieImplantTest {
+public class ChromeCookieImplanterTest {
 
     private static final boolean debug = true;
+
+    private static File extensionFile;
+    private static String extensionId;
+
+    @ClassRule
+    public static TemporaryFolder classTempFolder = new TemporaryFolder();
+
+    @BeforeClass
+    public static void prepareCrxFile() throws IOException {
+        File destination = classTempFolder.newFile("chrome-cookie-implant.crx");
+        try (OutputStream out = new FileOutputStream(destination)) {
+            new ChromeCookieImplanter().copyCrxTo(out);
+        }
+        extensionFile = destination;
+        extensionId = extractExtensionId(extensionFile);
+    }
 
     @Rule
     public XvfbRule xvfb = XvfbRule.builder().disabledOnWindows().build();
@@ -55,15 +70,6 @@ public class ChromeCookieImplantTest {
         if (driverPath == null) {
             ChromeDriverManager.getInstance().setup();
         }
-    }
-
-    private static File getExtensionFile() throws FileNotFoundException, URISyntaxException {
-        String resourcePath = "/chrome-cookie-implant.crx";
-        URL resource = ChromeCookieImplantTest.class.getResource(resourcePath);
-        if (resource == null) {
-            throw new FileNotFoundException("classpath:" + resourcePath);
-        }
-        return new File(resource.toURI());
     }
 
     private static String extractExtensionId(File crxFile) throws IOException {
@@ -107,15 +113,6 @@ public class ChromeCookieImplantTest {
         }
     }
 
-    @BeforeClass
-    public static void setUpClass()  throws Exception {
-        extensionFile = getExtensionFile();
-        extensionId = extractExtensionId(extensionFile);
-    }
-
-    private static File extensionFile;
-    private static String extensionId;
-
     private ChromeDriver createDriver() throws IOException, URISyntaxException {
         ChromeOptions options = new ChromeOptions();
         options.addExtensions(extensionFile);
@@ -136,6 +133,7 @@ public class ChromeCookieImplantTest {
         }
     }
 
+    @SuppressWarnings("Guava")
     private static Predicate<WebDriver> outputStatusAllProcessed() {
         return new Predicate<WebDriver>() {
             private final JsonParser jsonParser = new JsonParser();
@@ -157,4 +155,8 @@ public class ChromeCookieImplantTest {
         };
     }
 
+    @Test
+    public void testInstantiate_default() {
+        new ChromeCookieImplanter();
+    }
 }
