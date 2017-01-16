@@ -57,7 +57,9 @@ function createStageArray() {
     return stages;
 }
 
-
+function isObject(thing) {
+    return typeof(thing) === 'object';
+}
 
 /**
  * @param {object} input parsed query string
@@ -76,10 +78,16 @@ function processImports(input, setCookieCallback) {
         if (newCookie) {
             try {
                 chrome.cookies.set(newCookie, outCookie => {
-                    setCookieCallback(index, numImportSeeds, newCookie, true, outCookie, "OK");
+                    if (isObject(outCookie)) {
+                        setCookieCallback(index, numImportSeeds, newCookie, true, outCookie, "OK");
+                    } else {
+                        var message = chrome.runtime.lastError.message;
+                        console.info("chrome.cookies.set failed", chrome.runtime.lastError);
+                        setCookieCallback(index, numImportSeeds, newCookie, false, outCookie, message);
+                    }
                 });
             } catch (err) {
-                console.info("chrome.cookies.set failed", err);
+                console.info("chrome.cookies.set threw exception", err);
                 setCookieCallback(index, numImportSeeds, newCookie, false, null, err.toString());
             }
         } else {
@@ -155,12 +163,12 @@ document.addEventListener('DOMContentLoaded', function() {
             'savedCookie': outCookie,
             'message': s || null
         });
-        var cookieInfoCells = outCookie === null 
-                ? ['', '', '', ''].map(createTableCell) 
-                : [createTableCell(outCookie.domain), 
+        var cookieInfoCells = isObject(outCookie)
+                ? [createTableCell(outCookie.domain), 
                     createTableCell(outCookie.path), 
                     createTableCell(outCookie.name), 
-                    createTableCell(outCookie.value, true)];
+                    createTableCell(outCookie.value, true)]
+                : ['', '', '', ''].map(createTableCell) ;
         var row = document.createElement('tr');
         cookieInfoCells.forEach(c => row.appendChild(c));
         if (typeof(resultTableHeader) === 'undefined') {
