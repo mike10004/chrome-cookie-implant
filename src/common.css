@@ -8,3 +8,11 @@ body {
     padding: 12px;
     background-color: #fbfbfc;
 }
+
+#input-params {
+    width: 100%;
+}
+
+#input-params td > input {
+    width: 100%;
+}
