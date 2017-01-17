@@ -1,8 +1,3 @@
-/*
- * (c) 2017 Novetta
- *
- * Created by mike
- */
 package com.github.mike10004.chromecookieimplant;
 
 import java.math.BigDecimal;
@@ -42,7 +37,7 @@ public class ChromeCookie {
     public Boolean httpOnly;
     public SameSiteStatus sameSite;
     public Boolean session;
-    public Double expirationDate;
+    public BigDecimal expirationDate;
     public String storeId;
 
     @Override
@@ -114,7 +109,7 @@ public class ChromeCookie {
         private Boolean httpOnly;
         private SameSiteStatus sameSite;
         private Boolean session;
-        private Double expirationDate;
+        private BigDecimal expirationDate;
         private String storeId;
 
         private Builder() {
@@ -166,11 +161,12 @@ public class ChromeCookie {
         }
 
         public Builder expirationDate(BigDecimal val) {
-            return expirationDate(val.doubleValue());
+            expirationDate = val;
+            return this;
         }
 
         public Builder expirationDate(Double val) {
-            expirationDate = val;
+            expirationDate = val == null ? null : BigDecimal.valueOf(val);
             return this;
         }
 
@@ -183,4 +179,9 @@ public class ChromeCookie {
             return new ChromeCookie(this);
         }
     }
+
+    public String summarize() {
+        return "Cookie{domain=" + domain + ",path=" + path + ",name=" + name + "}";
+    }
+
 }

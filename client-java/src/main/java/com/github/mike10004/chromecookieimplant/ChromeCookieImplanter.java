@@ -1,8 +1,3 @@
-/*
- * (c) 2017 Novetta
- *
- * Created by mike
- */
 package com.github.mike10004.chromecookieimplant;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -74,39 +69,47 @@ public class ChromeCookieImplanter {
         crxBytes.copyTo(outputStream);
     }
 
-    public interface FailureHandler {
-        void handleFailure(CookieImplantResult result);
+    public interface ResultExaminer {
+        void examine(CookieImplantResult result);
     }
 
-    private static class DefaultFailureHandler implements FailureHandler {
+    private static final String IGNORED_PREFIX = "ignored:";
+
+    private static class DefaultResultExaminer implements ResultExaminer {
 
         @Override
-        public void handleFailure(CookieImplantResult result) {
-            log.error("cookie implant failed: {} {}", result.index, result.message);
-            throw new CookieImplantException("cookie " + result.index + " failed to be implanted: " + result.message);
+        public void examine(CookieImplantResult result) {
+            if (!result.success) {
+                if (result.message != null && result.message.startsWith(IGNORED_PREFIX)) {
+                    log.info("cookie implant ignored: index={}, message={}", result.index, result.message);
+                } else {
+                    log.error("cookie implant failed: index={}, message={}", result.index, result.message);
+                    throw new CookieImplantException("cookie " + result.index + " failed to be implanted: " + result.message);
+                }
+            }
         }
 
-        private static final DefaultFailureHandler instance = new DefaultFailureHandler();
+        private static final DefaultResultExaminer instance = new DefaultResultExaminer();
     }
 
     public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver) {
-        return implant(cookies, driver, DefaultFailureHandler.instance);
+        return implant(cookies, driver, DefaultResultExaminer.instance);
     }
 
-    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver, FailureHandler failureHandler) {
-        checkNotNull(failureHandler, "failureHandler");
+    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver, ResultExaminer resultExaminer) {
+        checkNotNull(resultExaminer, "failureHandler");
         URI manageUrl = buildImplantUriFromCookies(cookies.stream());
         driver.get(manageUrl.toString());
         CookieImplantOutput output = waitForCookieImplantOutput(driver, outputTimeoutSeconds);
         int numFailures = 0;
-        for (CookieImplantResult result : output.imports) {
+        for (CookieImplantResult result : output.implants) {
             if (!result.success) {
                 numFailures++;
-                failureHandler.handleFailure(result);
             }
+            resultExaminer.examine(result);
         }
-        log.debug("{} of {} cookies imported using implant extension", cookies.size() - numFailures, cookies.size());
-        return ImmutableList.copyOf(output.imports);
+        log.debug("{} of {} cookies implanted using implant extension", cookies.size() - numFailures, cookies.size());
+        return ImmutableList.copyOf(output.implants);
     }
 
     protected <T> By elementTextRepresentsObject(By elementLocator, Class<T> deserializedType, Predicate<? super T> predicate) {
@@ -127,13 +130,13 @@ public class ChromeCookieImplanter {
         };
     }
 
-    protected By byOutputStatus(Predicate<CookieImplantStatus> statusPredicate) {
+    protected By byOutputStatus(Predicate<CookieProcessingStatus> statusPredicate) {
         return elementTextRepresentsObject(By.cssSelector("#output"), CookieImplantOutput.class, cio -> statusPredicate.test(cio.status));
     }
 
     protected CookieImplantOutput waitForCookieImplantOutput(WebDriver driver, int timeOutInSeconds) {
         WebElement outputElement = new WebDriverWait(driver, timeOutInSeconds)
-                .until(ExpectedConditions.presenceOfElementLocated(byOutputStatus(CookieImplantStatus.all_imports_processed::equals)));
+                .until(ExpectedConditions.presenceOfElementLocated(byOutputStatus(CookieProcessingStatus.all_implants_processed::equals)));
         String outputJson = outputElement.getText();
         CookieImplantOutput output = gson.fromJson(outputJson, CookieImplantOutput.class);
         return output;
@@ -152,7 +155,7 @@ public class ChromeCookieImplanter {
     protected URI buildImplantUriFromCookieJsons(Stream<String> cookieJsons) {
         try {
             URIBuilder uriBuilder = new URIBuilder(URI.create("chrome-extension://" + getExtensionId() + "/manage.html"));
-            cookieJsons.forEach(cookieJson -> uriBuilder.addParameter("import", cookieJson));
+            cookieJsons.forEach(cookieJson -> uriBuilder.addParameter(QUERY_PARAM_IMPLANT, cookieJson));
             URI uri = uriBuilder.build();
             return uri;
         } catch (URISyntaxException e) {
@@ -160,4 +163,6 @@ public class ChromeCookieImplanter {
         }
 
     }
+
+    public static final String QUERY_PARAM_IMPLANT = "implant";
 }

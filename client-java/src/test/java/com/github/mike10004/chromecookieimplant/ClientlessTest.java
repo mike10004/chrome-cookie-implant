@@ -52,7 +52,7 @@ public class ClientlessTest extends WebDriverTestBase {
                     System.out.println();
                 }
                 String status = jsonParser.parse(outputJson).getAsJsonObject().get("status").getAsString();
-                return "all_imports_processed".equals(status);
+                return CookieProcessingStatus.all_implants_processed.toString().equals(status);
             }
         };
     }

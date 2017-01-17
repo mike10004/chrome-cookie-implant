@@ -1,4 +1,4 @@
-package com.github.mike10004.chromecookieimplant.tests;
+package com.github.mike10004.chromecookieimplant;
 
 import org.junit.Test;
 
