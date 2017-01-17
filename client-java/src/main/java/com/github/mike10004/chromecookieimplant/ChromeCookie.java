@@ -1,14 +1,29 @@
 package com.github.mike10004.chromecookieimplant;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * Class that represents a cookie with structure defined by the Chrome Extensions API.
+ * All fields are nullable.
  * See https://developer.chrome.com/extensions/cookies#method-set.
  */
 public class ChromeCookie {
 
-    public ChromeCookie() {
+    @SuppressWarnings("unused") // used in deserialization
+    private ChromeCookie() {
+        url = null;
+        name = null;
+        value = null;
+        domain = null;
+        path = null;
+        secure = null;
+        httpOnly = null;
+        sameSite = null;
+        expirationDate = null;
+        storeId = null;
+        session = null;
     }
 
     private ChromeCookie(Builder builder) {
@@ -28,17 +43,21 @@ public class ChromeCookie {
     @SuppressWarnings("unused")
     public enum SameSiteStatus { no_restriction, lax, strict }
 
-    public String url;
-    public String name;
-    public String value;
-    public String domain;
-    public String path;
-    public Boolean secure;
-    public Boolean httpOnly;
-    public SameSiteStatus sameSite;
-    public Boolean session;
-    public BigDecimal expirationDate;
-    public String storeId;
+    public final String url;
+    public final String name;
+    public final String value;
+    public final String domain;
+    public final String path;
+    public final Boolean secure;
+    public final Boolean httpOnly;
+    public final SameSiteStatus sameSite;
+    public final Boolean session;
+
+    /**
+     * The expiration date in seconds.
+     */
+    public final BigDecimal expirationDate;
+    public final String storeId;
 
     @Override
     public boolean equals(Object o) {
@@ -160,11 +179,29 @@ public class ChromeCookie {
             return this;
         }
 
+        /**
+         * Expiration date, in seconds since the epoch.
+         * @param val number of seconds since the epoch
+         * @return this builder instance
+         */
         public Builder expirationDate(BigDecimal val) {
             expirationDate = val;
             return this;
         }
 
+        private static BigDecimal convertDateToDecimal(@Nullable Date date) {
+            return date == null ? null : BigDecimal.valueOf(date.getTime()).scaleByPowerOfTen(-3);
+        }
+
+        public Builder expirationDate(Date date) {
+            return expirationDate(convertDateToDecimal(date));
+        }
+
+        /**
+         * Expiration date, in seconds since the epoch.
+         * @param val number of seconds since the epoch
+         * @return this builder instance
+         */
         public Builder expirationDate(Double val) {
             expirationDate = val == null ? null : BigDecimal.valueOf(val);
             return this;
