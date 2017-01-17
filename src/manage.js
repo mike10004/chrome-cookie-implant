@@ -18,19 +18,19 @@ function parseQuery() {
 
 /**
  * Parse a cookie seed.
- * @param {string} importSeed - the import seed
+ * @param {string} implantSeed - the implant seed
  * @param {object} query - the query object, which may specify options of how to interpret the seed
  * @param {function(string,object,err)} - function to which bad seeds are passed
  * @returns {object|boolean} - the cookie, or false if the seed could not be parsed
  */
-function parseImportSeed(importSeed, query, badSeedHandler) {
+function parseImplantSeed(implantSeed, query, badSeedHandler) {
     badSeedHandler = badSeedHandler || (x => false);
     var result;
     try {
-        result = JSON.parse(importSeed);
+        result = JSON.parse(implantSeed);
     } catch (err) {
-        console.info("failed to interpret cookie seed", importSeed, query, err);
-        result = badSeedHandler(importSeed, query, err);
+        console.info("failed to interpret cookie seed", implantSeed, query, err);
+        result = badSeedHandler(implantSeed, query, err);
     }
     return result;
 }
@@ -38,7 +38,7 @@ function parseImportSeed(importSeed, query, badSeedHandler) {
 /**
  * Sets the inner text of the output element to a string representation
  * of the argument object.
- * @param {MultiImportOutput} output output object
+ * @param {MultiImplantOutput} output output object
  */
 function printOutput(output) {
     var outputDiv = document.getElementById('output');
@@ -48,8 +48,8 @@ function printOutput(output) {
 function createStageArray() {
     var stages = [
         'not_yet_processed',
-        'some_imports_processed',
-        'all_imports_processed'
+        'some_implants_processed',
+        'all_implants_processed'
     ];
     stages.first = stages[0];
     stages.middle = stages[1];
@@ -64,34 +64,34 @@ function isObject(thing) {
 /**
  * @param {object} input parsed query string
  * @param {function(number, object, boolean, object, string)} setCookieCallback the cookie callback; 
- *      parameters are cookie index (integer), input cookie object (or null), import success (boolean), 
+ *      parameters are cookie index (integer), input cookie object (or null), implant success (boolean), 
  *      output cookie object (or null if !success), error info (string)
  */
-function processImports(input, setCookieCallback) {
-    var cookieImports = input['import'] || [];
-    var numImportSeeds = cookieImports.length;
-    var newCookies = cookieImports
-        .map(importSeed => parseImportSeed(importSeed, input));
+function processImplants(input, setCookieCallback) {
+    var cookieImplants = input['implant'] || [];
+    var numImplantSeeds = cookieImplants.length;
+    var newCookies = cookieImplants
+        .map(implantSeed => parseImplantSeed(implantSeed, input));
     var numGoodCookies = newCookies.filter(c => !!c).length;
-    console.debug(numGoodCookies + " good cookies among " + numImportSeeds + " import seeds");
+    console.debug(numGoodCookies + " good cookies among " + numImplantSeeds + " implant seeds");
     newCookies.forEach((newCookie, index) => {
         if (newCookie) {
             try {
                 chrome.cookies.set(newCookie, outCookie => {
                     if (isObject(outCookie)) {
-                        setCookieCallback(index, numImportSeeds, newCookie, true, outCookie, "OK");
+                        setCookieCallback(index, numImplantSeeds, newCookie, true, outCookie, "OK");
                     } else {
-                        var message = chrome.runtime.lastError.message;
                         console.info("chrome.cookies.set failed", chrome.runtime.lastError);
-                        setCookieCallback(index, numImportSeeds, newCookie, false, outCookie, message);
+                        var message = (chrome.runtime.lastError || {}).message;
+                        setCookieCallback(index, numImplantSeeds, newCookie, false, outCookie, message || "cookies_set_failed_without_revealing_why");
                     }
                 });
             } catch (err) {
                 console.info("chrome.cookies.set threw exception", err);
-                setCookieCallback(index, numImportSeeds, newCookie, false, null, err.toString());
+                setCookieCallback(index, numImplantSeeds, newCookie, false, null, err.toString());
             }
         } else {
-            setCookieCallback(index, numImportSeeds, null, false, null, 'seed_parse_failed');
+            setCookieCallback(index, numImplantSeeds, null, false, null, 'seed_parse_failed');
         }
     });
     return newCookies.length;
@@ -110,9 +110,9 @@ function createTableCell(value, wrapTextInInput) {
     return cell;
 }
 
-function MultiImportOutput(status, imports) {
+function MultiImplantOutput(status, implants) {
     this.status = status;
-    this.imports = imports || [];
+    this.implants = implants || [];
 }
 
 function setReadableResult(result) {
@@ -151,13 +151,13 @@ document.addEventListener('DOMContentLoaded', function() {
         inputDiv.innerText = 'No cookie implants requested';
     }
     var resultTable = document.createElement('table');
-    resultTable.id = 'import-results';
-    var output = new MultiImportOutput(STAGES.first);
+    resultTable.id = 'implant-results';
+    var output = new MultiImplantOutput(STAGES.first);
     printOutput(output);
     var resultTableHeader; 
-    var numCookies = processImports(query, (index, numImportSeeds, newCookie, success, outCookie, s) => {
+    var numCookies = processImplants(query, (index, numImplantSeeds, newCookie, success, outCookie, s) => {
         console.debug('chrome.cookies.set', index, newCookie, success, outCookie, s);
-        output.imports.push({
+        output.implants.push({
             'index': index,
             'success': success,
             'savedCookie': outCookie,
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resultTable.appendChild(resultTableHeader);
         }
         resultTable.appendChild(row);
-        if (output.imports.length == numImportSeeds) {
+        if (output.implants.length == numImplantSeeds) {
             output.status = STAGES.last;
             printOutput(output);
             setReadableResult(resultTable);
