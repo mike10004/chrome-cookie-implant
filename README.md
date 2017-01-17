@@ -22,7 +22,7 @@ Clone and make:
 
 This prints the name of the `.crx` file created. The name is formed from 
 the extension ID, the version, and the `.crx` suffix, for example
-`neiaahbjfbepoclbammdhcailekhmcdm-1.1.crx`. 
+`neiaahbjfbepoclbammdhcailekhmcdm-1.5.crx`. 
 
 Using the extension
 -------------------
@@ -43,19 +43,18 @@ Some example Java code that demonstrates using the extension:
             ChromeDriverManager.getInstance().setup();
             ChromeOptions options = new ChromeOptions();
             String extensionId = "neiaahbjfbepoclbammdhcailekhmcdm";
-            options.addExtensions(new File("/home/mike10004/chrome-cookie-implant/" + extensionId + "-1.1.crx"));
+            options.addExtensions(new File("/home/mike10004/chrome-cookie-implant/" + extensionId + "-1.5.crx"));
             ChromeDriver driver = new ChromeDriver(options);
             String cookieJson = "{" +
                     "\"url\":\"http://www.example.com/\"," +
                     "\"domain\":\".www.example.com\"," +
                     "\"path\":\"/\"," +
                     "\"name\":\"my_cookie_name\"," +
-                    "\"value\":" +
-                    "\"my_cookie_value\"," +
+                    "\"value\":\"my_cookie_value\"," +
                     "\"expirationDate\":1513292605.379" +
             "}";
             URI uri = new URIBuilder(URI.create("chrome-extension://" + extensionId + "/manage.html"))
-                    .addParameter("import", cookieJson)
+                    .addParameter("implant", cookieJson)
                     .build();
             System.out.println(uri);
             driver.get(uri.toString());
@@ -65,6 +64,12 @@ Some example Java code that demonstrates using the extension:
 
 See [Chrome cookies API](https://developer.chrome.com/extensions/cookies#method-set)
 documentation on the properties the cookies can have.
+
+### Using the Java Client
+
+As of version 1.5, there is a Java client library available to make using
+the extension a tad easier. See the unit tests in that library's source code
+for usage examples.
 
 Notes
 -----
