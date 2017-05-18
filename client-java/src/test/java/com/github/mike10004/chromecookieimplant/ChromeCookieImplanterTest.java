@@ -1,8 +1,6 @@
 package com.github.mike10004.chromecookieimplant;
 
-import com.google.common.io.Files;
 import com.google.common.math.LongMath;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,19 +8,13 @@ import org.jsoup.Jsoup;
 import org.junit.Test;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-import java.io.File;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class ChromeCookieImplanterTest extends WebDriverTestBase {
 

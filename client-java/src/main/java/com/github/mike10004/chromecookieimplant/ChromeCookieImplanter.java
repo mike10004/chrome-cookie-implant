@@ -135,8 +135,10 @@ public class ChromeCookieImplanter {
     }
 
     protected CookieImplantOutput waitForCookieImplantOutput(WebDriver driver, int timeOutInSeconds) {
+        By by = byOutputStatus(CookieProcessingStatus.all_implants_processed::equals);
+        com.google.common.base.Function<? super WebDriver, WebElement> fn = ExpectedConditions.presenceOfElementLocated(by);
         WebElement outputElement = new WebDriverWait(driver, timeOutInSeconds)
-                .until(ExpectedConditions.presenceOfElementLocated(byOutputStatus(CookieProcessingStatus.all_implants_processed::equals)));
+                .until(fn::apply);
         String outputJson = outputElement.getText();
         CookieImplantOutput output = gson.fromJson(outputJson, CookieImplantOutput.class);
         return output;

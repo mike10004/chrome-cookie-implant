@@ -31,14 +31,14 @@ public class ClientlessTest extends WebDriverTestBase {
     }
 
     @SuppressWarnings("Guava")
-    private static Predicate<WebDriver> outputStatusAllProcessed() {
-        return new Predicate<WebDriver>() {
+    private static java.util.function.Function<WebDriver, Boolean> outputStatusAllProcessed() {
+        return new java.util.function.Function<WebDriver, Boolean>() {
             private final JsonParser jsonParser = new JsonParser();
             private final AtomicInteger pollCounter = new AtomicInteger(0);
             @Override
-            public boolean apply(WebDriver webDriver) {
+            public Boolean apply(WebDriver webDriver) {
                 WebElement outputElement = new WebDriverWait(webDriver, 3)
-                        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output")));
+                        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output"))::apply);
                 String outputJson = outputElement.getText();
                 if (debug) {
                     System.out.format("cookie implant extension output %d:", pollCounter.incrementAndGet());
