@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
+import io.github.mike10004.crxtool.BasicCrxParser;
 import org.apache.http.client.utils.URIBuilder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,7 +27,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,7 +41,7 @@ public class ChromeCookieImplanter {
     private final ByteSource crxBytes;
     private transient final Gson gson;
     private final int outputTimeoutSeconds;
-    private final java.util.function.Supplier<String> extensionIdSupplier;
+    private final Supplier<String> extensionIdSupplier;
 
     public ChromeCookieImplanter() {
         this(Resources.asByteSource(getCrxResourceOrDie()));
@@ -49,12 +53,12 @@ public class ChromeCookieImplanter {
         gson = new Gson();
         outputTimeoutSeconds = 3;
         extensionIdSupplier = Suppliers.memoize(() -> {
-            try {
-                return new CrxMetadataParser().parse(crxBytes).id;
+            try (InputStream in = crxBytes.openStream()){
+                return new BasicCrxParser().parseMetadata(in).id;
             } catch (IOException e) {
                 throw new RuntimeException("failed to parse chrome extension metadata from .crx bytes", e);
             }
-        })::get;
+        });
     }
 
     private static URL getCrxResourceOrDie() throws IllegalStateException {
@@ -136,9 +140,9 @@ public class ChromeCookieImplanter {
 
     protected CookieImplantOutput waitForCookieImplantOutput(WebDriver driver, int timeOutInSeconds) {
         By by = byOutputStatus(CookieProcessingStatus.all_implants_processed::equals);
-        com.google.common.base.Function<? super WebDriver, WebElement> fn = ExpectedConditions.presenceOfElementLocated(by);
+        Function<? super WebDriver, WebElement> fn = ExpectedConditions.presenceOfElementLocated(by);
         WebElement outputElement = new WebDriverWait(driver, timeOutInSeconds)
-                .until(fn::apply);
+                .until(fn);
         String outputJson = outputElement.getText();
         CookieImplantOutput output = gson.fromJson(outputJson, CookieImplantOutput.class);
         return output;

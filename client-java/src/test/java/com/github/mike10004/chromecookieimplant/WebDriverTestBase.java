@@ -3,6 +3,7 @@ package com.github.mike10004.chromecookieimplant;
 import com.github.mike10004.xvfbselenium.WebDriverSupport;
 import com.github.mike10004.xvfbtesting.XvfbRule;
 import io.github.bonigarcia.wdm.ChromeDriverManager;
+import io.github.mike10004.crxtool.BasicCrxParser;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -12,8 +13,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -57,7 +60,9 @@ public class WebDriverTestBase {
     }
 
     private static String extractExtensionId(File crxFile) throws IOException {
-        return new CrxMetadataParser().parse(crxFile).id;
+        try (InputStream input = new FileInputStream(crxFile)) {
+            return new BasicCrxParser().parseMetadata(input).id;
+        }
     }
 
     protected ChromeDriver createDriver() throws IOException, URISyntaxException {

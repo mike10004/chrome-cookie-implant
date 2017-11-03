@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant-client</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant-client</artifactId>
-    <version>1.5.5</version>
+    <version>1.5.6</version>
     <description>Client library for users of Chrome Cookie Implant extension</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
     <inceptionYear>2016</inceptionYear>
@@ -226,6 +226,11 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mike10004</groupId>
+            <artifactId>crxtool</artifactId>
+            <version>0.1</version>
         </dependency>
     </dependencies>
 </project>
