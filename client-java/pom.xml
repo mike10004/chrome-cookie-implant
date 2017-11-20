@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant-client</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant-client</artifactId>
-    <version>1.5.6</version>
+    <version>1.5.7</version>
     <description>Client library for users of Chrome Cookie Implant extension</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
     <inceptionYear>2016</inceptionYear>
@@ -36,7 +36,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <xvfb-manager.version>0.9</xvfb-manager.version>
         <extension.file.pathname>${project.build.outputDirectory}/chrome-cookie-implant.crx</extension.file.pathname>
-        <selenium.version>3.5.3</selenium.version>
+        <selenium.version>3.7.1</selenium.version>
     </properties>
 
     <distributionManagement>
@@ -183,7 +183,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>22.0</version>
+            <version>23.0</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
