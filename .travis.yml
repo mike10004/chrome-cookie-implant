@@ -1,11 +1,10 @@
-dist: trusty
-sudo: false
-group: beta
 language: java
 addons:
   apt:
     packages:
     - chromium-browser
+notifications:
+  email: false
 before_install:
   - dpkg-query -l xvfb chromium-browser
   - which chromium-browser || true
