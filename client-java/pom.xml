@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant-client</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant-client</artifactId>
-    <version>1.5.7</version>
+    <version>1.5.8</version>
     <description>Client library for users of Chrome Cookie Implant extension</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
     <inceptionYear>2016</inceptionYear>
@@ -37,6 +37,7 @@
         <xvfb-manager.version>0.9</xvfb-manager.version>
         <extension.file.pathname>${project.build.outputDirectory}/chrome-cookie-implant.crx</extension.file.pathname>
         <selenium.version>3.7.1</selenium.version>
+        <extension.key.file>${chrome-cookie-implant-client.extension.key.file}</extension.key.file>
     </properties>
 
     <distributionManagement>
@@ -143,24 +144,21 @@
                 <version>2.7.1</version>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>com.github.mike10004</groupId>
+                <artifactId>crxtool-maven-plugin</artifactId>
+                <version>0.6</version>
                 <executions>
                     <execution>
                         <id>make-crx</id>
                         <phase>process-resources</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>pack-extension</goal>
                         </goals>
                         <configuration>
-                            <workingDirectory>${project.basedir}/..</workingDirectory>
-                            <executable>xvfb-run</executable>
-                            <arguments>
-                                <argument>--auto-servernum</argument>
-                                <argument>bash</argument>
-                                <argument>make.sh</argument>
-                                <argument>${extension.file.pathname}</argument>
-                            </arguments>
+                            <sourceDirectory>${project.basedir}/../src</sourceDirectory>
+                            <outputFile>${extension.file.pathname}</outputFile>
+                            <privateKey>${extension.key.file}</privateKey>
+                            <generateKeyIfAbsent>true</generateKeyIfAbsent>
                         </configuration>
                     </execution>
                 </executions>
@@ -229,8 +227,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.mike10004</groupId>
-            <artifactId>crxtool</artifactId>
-            <version>0.1</version>
+            <artifactId>crxtool-core</artifactId>
+            <version>0.6</version>
         </dependency>
     </dependencies>
 </project>

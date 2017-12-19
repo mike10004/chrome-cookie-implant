@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
-import io.github.mike10004.crxtool.BasicCrxParser;
+import io.github.mike10004.crxtool.CrxParser;
 import org.apache.http.client.utils.URIBuilder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
@@ -54,7 +54,7 @@ public class ChromeCookieImplanter {
         outputTimeoutSeconds = 3;
         extensionIdSupplier = Suppliers.memoize(() -> {
             try (InputStream in = crxBytes.openStream()){
-                return new BasicCrxParser().parseMetadata(in).id;
+                return CrxParser.getDefault().parseMetadata(in).id;
             } catch (IOException e) {
                 throw new RuntimeException("failed to parse chrome extension metadata from .crx bytes", e);
             }
