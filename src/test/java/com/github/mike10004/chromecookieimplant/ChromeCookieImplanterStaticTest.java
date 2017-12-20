@@ -27,18 +27,6 @@ public class ChromeCookieImplanterStaticTest {
         }
     }
 
-    /**
-     * Tests that the extension ID remains the same between our official builds.
-     * @throws Exception
-     */
-    @Test
-    public void extensionIdStable() throws Exception {
-        System.getProperty()
-        CrxMetadata metadata = readMetadata();
-        String expectedExtensionId = "kaoadjmhchcekjlnhdmeennkgjeacdio";
-        assertEquals("id", expectedExtensionId, metadata.id);
-    }
-
     @Test
     public void info() throws Exception {
         Properties p = new Properties();
