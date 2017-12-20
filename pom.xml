@@ -3,11 +3,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>chrome-cookie-implant-client</name>
+    <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
-    <artifactId>chrome-cookie-implant-client</artifactId>
-    <version>1.5.8</version>
-    <description>Client library for users of Chrome Cookie Implant extension</description>
+    <artifactId>chrome-cookie-implant</artifactId>
+    <version>1.5.9</version>
+    <packaging>jar</packaging>
+    <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
     <inceptionYear>2016</inceptionYear>
     <licenses>
@@ -34,10 +35,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <xvfb-manager.version>0.9</xvfb-manager.version>
-        <extension.file.pathname>${project.build.outputDirectory}/chrome-cookie-implant.crx</extension.file.pathname>
+        <xvfb-manager.version>0.14</xvfb-manager.version>
         <selenium.version>3.7.1</selenium.version>
-        <extension.key.file>${chrome-cookie-implant-client.extension.key.file}</extension.key.file>
+        <crxtool.outputFile>${project.build.outputDirectory}/chrome-cookie-implant.crx</crxtool.outputFile>
+        <crxtool.privateKey>${chrome-cookie-implant-client.extension.key.file}</crxtool.privateKey>
     </properties>
 
     <distributionManagement>
@@ -155,23 +156,53 @@
                             <goal>pack-extension</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/../src</sourceDirectory>
-                            <outputFile>${extension.file.pathname}</outputFile>
-                            <privateKey>${extension.key.file}</privateKey>
+                            <outputFile>${crxtool.outputFile}</outputFile>
+                            <privateKey>${crxtool.privateKey}</privateKey>
                             <generateKeyIfAbsent>true</generateKeyIfAbsent>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-artifact</id>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${crxtool.outputFile}</file>
+                                    <type>crx</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
     <dependencies>
-        <dependency>
-            <groupId>com.github.mike10004</groupId>
-            <artifactId>xvfb-selenium</artifactId>
-            <version>${xvfb-manager.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.github.mike10004</groupId>
             <artifactId>xvfb-testing</artifactId>
@@ -186,7 +217,7 @@
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>1.6.2</version>
+            <version>2.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -9,5 +9,5 @@ before_install:
   - dpkg-query -l xvfb chromium-browser
   - which chromium-browser || true
   - which google-chrome || true
-install: xvfb-run --auto-servernum bash make.sh
-script: mvn -f client-java/pom.xml -B verify
+install: mvn dependency:resolve
+script: mvn -B verify

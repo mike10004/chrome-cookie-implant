@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class ChromeCookieImplanter {
 
@@ -49,7 +50,7 @@ public class ChromeCookieImplanter {
 
     @VisibleForTesting
     ChromeCookieImplanter(ByteSource crxBytes) {
-        this.crxBytes = crxBytes;
+        this.crxBytes = requireNonNull(crxBytes);
         gson = new Gson();
         outputTimeoutSeconds = 3;
         extensionIdSupplier = Suppliers.memoize(() -> {
@@ -61,8 +62,10 @@ public class ChromeCookieImplanter {
         });
     }
 
-    private static URL getCrxResourceOrDie() throws IllegalStateException {
-        URL url = ChromeCookieImplanter.class.getResource("/chrome-cookie-implant.crx");
+    static final String EXTENSION_RESOURCE_PATH = "/chrome-cookie-implant.crx";
+
+    static URL getCrxResourceOrDie() throws IllegalStateException {
+        URL url = ChromeCookieImplanter.class.getResource(EXTENSION_RESOURCE_PATH);
         if (url == null) {
             throw new IllegalStateException("resource does not exist: classpath:/chrome-cookie-implant.crx");
         }

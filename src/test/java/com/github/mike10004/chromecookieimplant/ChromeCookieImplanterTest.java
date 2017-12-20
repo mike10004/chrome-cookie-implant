@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.math.BigDecimal;
+import java.net.URL;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,6 @@ public class ChromeCookieImplanterTest extends WebDriverTestBase {
 
     /**
      * Generates a date
-     * @return
      */
     private BigDecimal getDateInSecondsWithDaysOffset(int daysOffset) {
         long nowMs = Instant.now().toEpochMilli();
