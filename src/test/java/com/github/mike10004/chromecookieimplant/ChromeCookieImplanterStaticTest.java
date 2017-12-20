@@ -4,6 +4,7 @@ import io.github.mike10004.crxtool.CrxMetadata;
 import io.github.mike10004.crxtool.CrxParser;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
@@ -15,13 +16,27 @@ public class ChromeCookieImplanterStaticTest {
 
     @Test
     public void getCrxResourceOrDie() throws Exception {
+        System.out.println(readMetadata());
+    }
+
+    private CrxMetadata readMetadata() throws IOException {
         URL resource = ChromeCookieImplanter.getCrxResourceOrDie();
         assertNotNull(resource);
-        CrxMetadata metadata;
         try (InputStream in = resource.openStream()) {
-            metadata = CrxParser.getDefault().parseMetadata(in);
+            return CrxParser.getDefault().parseMetadata(in);
         }
-        System.out.println(metadata);
+    }
+
+    /**
+     * Tests that the extension ID remains the same between our official builds.
+     * @throws Exception
+     */
+    @Test
+    public void extensionIdStable() throws Exception {
+        System.getProperty()
+        CrxMetadata metadata = readMetadata();
+        String expectedExtensionId = "kaoadjmhchcekjlnhdmeennkgjeacdio";
+        assertEquals("id", expectedExtensionId, metadata.id);
     }
 
     @Test
@@ -36,4 +51,5 @@ public class ChromeCookieImplanterStaticTest {
             assertFalse("starts with ${ - " + key, value.startsWith("${"));
         });
     }
+
 }

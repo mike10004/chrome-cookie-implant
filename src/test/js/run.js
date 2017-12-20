@@ -3,7 +3,6 @@ require('chromedriver');
 const fs = require('fs');
 const crxData = fs.readFileSync('../../../target/classes/chrome-cookie-implant.crx');
 const crxBase64 = new Buffer(crxData).toString('base64');
-
 const driver = new Builder()
     .forBrowser('chrome')
     .withCapabilities({
@@ -13,8 +12,6 @@ const driver = new Builder()
         }
     })
     .build();
-
-driver.get('data:text/plain;charset=utf-8,hello%2C%20world');
 
 const cookie = {
     url: "https://www.example.com/",
