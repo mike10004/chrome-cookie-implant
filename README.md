@@ -1,33 +1,24 @@
 [![Travis build status](https://img.shields.io/travis/mike10004/chrome-cookie-implant.svg)](https://travis-ci.org/mike10004/chrome-cookie-implant)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.mike10004/chrome-cookie-implant.svg)](https://repo1.maven.org/maven2/com/github/mike10004/chrome-cookie-implant/)
 
 Chrome Cookie Implant
 =====================
 
-This is an extension that allows you to add cookies to your Chrome profile 
-with an HTTP GET request. The request URL is formed from the extension's ID
-and query parameters that contain cookies in JSON format. (The JSON must be 
-URL-encoded, of course.)
+This is a Chrome extension that allows you to execute an HTTP GET request to
+add cookies to your Chrome profile. The request is made to a `chrome-extension://` URL
+whose host is the the extension ID and whose query parameters contain URL-encoded 
+JSON objects that contain the cookie data.
 
-This is useful in web testing because the Chrome Extensions API has a more
-powerful cookie management API than the Chrome WebDriver.
-
-Building the extension
-----------------------
-
-Clone and make:
-
-    $ git clone https://github.com/mike10004/chrome-cookie-implant
-    $ cd chrome-cookie-implant
-    $ ./make.sh
-
-This prints the name of the `.crx` file created. The name is formed from 
-the extension ID, the version, and the `.crx` suffix, for example
-`neiaahbjfbepoclbammdhcailekhmcdm-1.5.crx`. 
+This is useful in web testing because the Chrome Extensions API for cookie 
+management is more powerful than the WebDriver cookies API.
 
 Using the extension
 -------------------
 
-Some example Java code that demonstrates using the extension:
+You can use the provided Java client library to install the extension and 
+implant cookies, or you can use the extension in any language by grabbing the 
+CRX artifact, installing it, and making your own HTTP requests. This is some
+example code that demonstrates using the extension without the client library:
 
     import io.github.bonigarcia.wdm.ChromeDriverManager;
     import org.apache.http.client.utils.URIBuilder;
@@ -65,14 +56,8 @@ Some example Java code that demonstrates using the extension:
 See [Chrome cookies API](https://developer.chrome.com/extensions/cookies#method-set)
 documentation on the properties the cookies can have.
 
-### Using the Java Client
-
-As of version 1.5, there is a Java client library available to make using
-the extension a tad easier. See the unit tests in that library's source code
-for usage examples.
-
-Notes
------
+Acknowledgements
+----------------
 
 Icon by Adèle Foucart, [CC 3.0](http://creativecommons.org/licenses/by/3.0/us/)
 via [The Noun Project](https://thenounproject.com/term/chocolate-chip-cookie/261714/).
