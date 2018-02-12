@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant</artifactId>
-    <version>1.5.9</version>
+    <version>1.5.10</version>
     <packaging>jar</packaging>
     <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
@@ -35,8 +35,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <xvfb-manager.version>0.14</xvfb-manager.version>
-        <selenium.version>3.7.1</selenium.version>
+        <xvfb-manager.version>0.16</xvfb-manager.version>
+        <selenium.version>3.9.1</selenium.version>
+        <slf4j.version>1.7.25</slf4j.version>
         <crxtool.outputFile>${project.build.outputDirectory}/chrome-cookie-implant.crx</crxtool.outputFile>
         <crxtool.privateKey>${chrome-cookie-implant-client.extension.key.file}</crxtool.privateKey>
     </properties>
@@ -51,6 +52,26 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>travis</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-surefire-plugin</artifactId>
+                            <configuration>
+                                <systemPropertyVariables>
+                                    <cci.chrome.extraArgs>--no-sandbox</cci.chrome.extraArgs>
+                                </systemPropertyVariables>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <pluginManagement>
@@ -70,7 +91,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.19.1</version>
+                    <version>2.20.1</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
@@ -212,23 +233,23 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>23.0</version>
+            <version>23.6-jre</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>2.0.1</version>
+            <version>2.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
-            <version>1.7.21</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -259,7 +280,7 @@
         <dependency>
             <groupId>com.github.mike10004</groupId>
             <artifactId>crxtool-core</artifactId>
-            <version>0.6</version>
+            <version>0.7</version>
         </dependency>
     </dependencies>
 </project>

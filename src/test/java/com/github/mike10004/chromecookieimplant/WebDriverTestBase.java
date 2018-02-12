@@ -1,6 +1,9 @@
 package com.github.mike10004.chromecookieimplant;
 
 import com.github.mike10004.xvfbtesting.XvfbRule;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 import io.github.mike10004.crxtool.BasicCrxParser;
 import org.junit.Before;
@@ -19,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class WebDriverTestBase {
 
@@ -67,6 +71,7 @@ public class WebDriverTestBase {
     @SuppressWarnings("RedundantThrows")
     protected ChromeDriver createDriver() throws IOException, URISyntaxException {
         ChromeOptions options = new ChromeOptions();
+        options.addArguments(getChromeExtraArgs());
         options.addExtensions(extensionFile);
         ChromeDriverService service = new ChromeDriverService.Builder()
                 .withEnvironment(xvfb.getController().newEnvironment())
@@ -75,4 +80,10 @@ public class WebDriverTestBase {
         return driver;
     }
 
+    private static final String SYSPROP_CHROME_EXTRA_ARGS = "cci.chrome.extraArgs";
+
+    private List<String> getChromeExtraArgs() {
+        String tokenStr = Strings.nullToEmpty(System.getProperty(SYSPROP_CHROME_EXTRA_ARGS));
+        return Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings().splitToList(tokenStr);
+    }
 }
