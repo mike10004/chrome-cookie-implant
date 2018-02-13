@@ -63,7 +63,11 @@
                             <artifactId>maven-surefire-plugin</artifactId>
                             <configuration>
                                 <systemPropertyVariables>
-                                    <cci.chrome.extraArgs>--no-sandbox</cci.chrome.extraArgs>
+                                    <!--suppress MavenModelInspection -->
+                                    <wdm.gitHubTokenName>${env.GITHUB_TOKEN_NAME}</wdm.gitHubTokenName>
+                                    <!--suppress MavenModelInspection -->
+                                    <wdm.gitHubTokenSecret>${env.GITHUB_TOKEN_SECRET}</wdm.gitHubTokenSecret>
+                                    <chrome-cookie-implant.chrome.extraArgs>--no-sandbox</chrome-cookie-implant.chrome.extraArgs>
                                 </systemPropertyVariables>
                             </configuration>
                         </plugin>

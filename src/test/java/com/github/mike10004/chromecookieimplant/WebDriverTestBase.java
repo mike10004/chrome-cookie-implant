@@ -26,6 +26,8 @@ import java.util.List;
 
 public class WebDriverTestBase {
 
+    private static final String SYSPROP_CHROME_EXTRA_ARGS = "chrome-cookie-implant.chrome.extraArgs";
+
     private static File extensionFile;
     private static String extensionId;
 
@@ -79,8 +81,6 @@ public class WebDriverTestBase {
         ChromeDriver driver = new ChromeDriver(service, options);
         return driver;
     }
-
-    private static final String SYSPROP_CHROME_EXTRA_ARGS = "cci.chrome.extraArgs";
 
     private List<String> getChromeExtraArgs() {
         String tokenStr = Strings.nullToEmpty(System.getProperty(SYSPROP_CHROME_EXTRA_ARGS));

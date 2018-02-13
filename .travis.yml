@@ -1,13 +1,5 @@
 language: java
-addons:
-  apt:
-    packages:
-    - chromium-browser
 notifications:
   email: false
-before_install:
-  - dpkg-query -l xvfb chromium-browser
-  - which chromium-browser || true
-  - which google-chrome || true
-install: mvn dependency:resolve
-script: mvn -B verify -Dcci.chrome.extraArgs=--no-sandbox
+install: mvn --quiet dependency:resolve
+script: mvn --quiet --batch-mode -P travis verify
