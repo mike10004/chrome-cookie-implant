@@ -26,7 +26,7 @@ The Java client library (including the extension):
     <dependency>
         <groupId>com.github.mike10004</groupId>
         <artifactId>chrome-cookie-implant</artifactId>
-        <version>1.5.9</version>
+        <version>1.5.11</version>
     </dependency>
 
 If you want just the Chrome extension:
@@ -34,7 +34,7 @@ If you want just the Chrome extension:
     <dependency>
         <groupId>com.github.mike10004</groupId>
         <artifactId>chrome-cookie-implant</artifactId>
-        <version>1.5.9</version>
+        <version>1.5.11</version>
         <type>crx</type>
     </dependency>
 
