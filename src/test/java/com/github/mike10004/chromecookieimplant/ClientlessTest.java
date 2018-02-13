@@ -1,6 +1,5 @@
 package com.github.mike10004.chromecookieimplant;
 
-import com.google.common.base.Predicate;
 import com.google.gson.JsonParser;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -12,6 +11,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class ClientlessTest extends WebDriverTestBase {
 
@@ -30,15 +30,14 @@ public class ClientlessTest extends WebDriverTestBase {
         }
     }
 
-    @SuppressWarnings("Guava")
-    private static java.util.function.Function<WebDriver, Boolean> outputStatusAllProcessed() {
-        return new java.util.function.Function<WebDriver, Boolean>() {
+    private static Function<WebDriver, Boolean> outputStatusAllProcessed() {
+        return new Function<WebDriver, Boolean>() {
             private final JsonParser jsonParser = new JsonParser();
             private final AtomicInteger pollCounter = new AtomicInteger(0);
             @Override
             public Boolean apply(WebDriver webDriver) {
                 WebElement outputElement = new WebDriverWait(webDriver, 3)
-                        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output"))::apply);
+                        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#output")));
                 String outputJson = outputElement.getText();
                 if (debug) {
                     System.out.format("cookie implant extension output %d:", pollCounter.incrementAndGet());

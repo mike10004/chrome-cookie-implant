@@ -1,5 +1,8 @@
 package com.github.mike10004.chromecookieimplant;
 
+/**
+ * Exception thrown when a cookie implant operation fails.
+ */
 @SuppressWarnings("unused")
 public class CookieImplantException extends RuntimeException {
     public CookieImplantException() {

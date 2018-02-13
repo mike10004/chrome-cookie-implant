@@ -32,11 +32,19 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Service class that implants cookies into a Chrome webdriver instance.
+ */
 public class ChromeCookieImplanter {
 
+    public static final String QUERY_PARAM_IMPLANT = "implant";
+    @VisibleForTesting
+    static final String EXTENSION_RESOURCE_PATH = "/chrome-cookie-implant.crx";
+    private static final String IGNORED_PREFIX = "ignored:";
+    public static final int DEFAULT_OUTPUT_TIMEOUT_SECONDS = 3;
     private static final Logger log = LoggerFactory.getLogger(ChromeCookieImplanter.class);
 
     private final ByteSource crxBytes;
@@ -49,10 +57,15 @@ public class ChromeCookieImplanter {
     }
 
     @VisibleForTesting
-    ChromeCookieImplanter(ByteSource crxBytes) {
-        this.crxBytes = requireNonNull(crxBytes);
-        gson = new Gson();
-        outputTimeoutSeconds = 3;
+    protected ChromeCookieImplanter(ByteSource crxBytes) {
+        this(crxBytes, DEFAULT_OUTPUT_TIMEOUT_SECONDS, new Gson());
+    }
+
+    protected ChromeCookieImplanter(ByteSource crxBytes, int outputTimeoutSeconds, Gson gson) {
+        this.crxBytes = requireNonNull(crxBytes, "crxBytes");
+        this.gson = requireNonNull(gson, "gson");
+        this.outputTimeoutSeconds = outputTimeoutSeconds;
+        checkArgument(outputTimeoutSeconds >= 0, "outputTimeoutSeconds >= 0 required: %s", outputTimeoutSeconds);
         extensionIdSupplier = Suppliers.memoize(() -> {
             try (InputStream in = crxBytes.openStream()){
                 return CrxParser.getDefault().parseMetadata(in).id;
@@ -62,8 +75,6 @@ public class ChromeCookieImplanter {
         });
     }
 
-    static final String EXTENSION_RESOURCE_PATH = "/chrome-cookie-implant.crx";
-
     static URL getCrxResourceOrDie() throws IllegalStateException {
         URL url = ChromeCookieImplanter.class.getResource(EXTENSION_RESOURCE_PATH);
         if (url == null) {
@@ -72,17 +83,41 @@ public class ChromeCookieImplanter {
         return url;
     }
 
+    /**
+     * Copies the extension package to the given output stream.
+     * @param outputStream the output stream
+     * @throws IOException if copying fails
+     */
     public void copyCrxTo(OutputStream outputStream) throws IOException {
         crxBytes.copyTo(outputStream);
     }
 
+    /**
+     * Interface that defines a method to handle a cookie implant result.
+     */
     public interface ResultExaminer {
-        void examine(CookieImplantResult result);
+        /**
+         * Examine the result
+         * @param result the result
+         * @throws CookieImplantException depending on whether the underlying implementation
+         */
+        void examine(CookieImplantResult result) throws CookieImplantException;
+
+        /**
+         * Creates and returns a default result examiner implementation instance.
+         * The implementation throws a {@link CookieImplantException} on most types of
+         * implant failures. Some implant failures are ignored, such as those that are
+         * due to cookie expiration dates in the past.
+         * @return a result examiner
+         */
+        static ResultExaminer createDefault() {
+            return DefaultResultExaminer.INSTANCE;
+        }
     }
 
-    private static final String IGNORED_PREFIX = "ignored:";
-
     private static class DefaultResultExaminer implements ResultExaminer {
+
+        private static final DefaultResultExaminer INSTANCE = new DefaultResultExaminer();
 
         @Override
         public void examine(CookieImplantResult result) {
@@ -96,15 +131,30 @@ public class ChromeCookieImplanter {
             }
         }
 
-        private static final DefaultResultExaminer instance = new DefaultResultExaminer();
     }
 
+    /**
+     * Implants a collection of cookies into a Chrome webdriver instance. The default
+     * result examiner is used, and it throws an exception on most implant failures.
+     * @param cookies the cookies
+     * @param driver the webdriver
+     * @return the results
+     * @see ResultExaminer#createDefault()
+     */
     public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver) {
-        return implant(cookies, driver, DefaultResultExaminer.instance);
+        return implant(cookies, driver, ResultExaminer.createDefault());
     }
 
+    /**
+     * Attempts to implant a collection of cookies, reacting to each attempt using the given
+     * result examiner.
+     * @param cookies the cookies
+     * @param driver the webdriver
+     * @param resultExaminer the result examiner
+     * @return the results
+     */
     public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver, ResultExaminer resultExaminer) {
-        checkNotNull(resultExaminer, "failureHandler");
+        requireNonNull(resultExaminer, "failureHandler");
         URI manageUrl = buildImplantUriFromCookies(cookies.stream());
         driver.get(manageUrl.toString());
         CookieImplantOutput output = waitForCookieImplantOutput(driver, outputTimeoutSeconds);
@@ -173,5 +223,4 @@ public class ChromeCookieImplanter {
 
     }
 
-    public static final String QUERY_PARAM_IMPLANT = "implant";
 }

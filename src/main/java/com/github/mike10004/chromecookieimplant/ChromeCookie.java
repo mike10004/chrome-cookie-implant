@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * Class that represents a cookie with structure defined by the Chrome Extensions API.
+ * Value class that represents a cookie with structure defined by the Chrome Extensions API.
  * All fields are nullable.
  * See https://developer.chrome.com/extensions/cookies#method-set.
  */

@@ -14,6 +14,9 @@ management is more powerful than the WebDriver cookies API. See the
 [Chrome cookies API](https://developer.chrome.com/extensions/cookies#method-set)
 for a list of properties a cookie can have.
 
+The companion Java client library uses Selenium to make the GET request to 
+implant cookies.
+
 Maven
 -----
 
