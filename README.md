@@ -1,4 +1,5 @@
-[![Travis build status](https://img.shields.io/travis/mike10004/chrome-cookie-implant.svg)](https://travis-ci.org/mike10004/chrome-cookie-implant)
+[![Travis build status](https://travis-ci.org/mike10004/chrome-cookie-implant.svg?branch=master)](https://travis-ci.org/mike10004/chrome-cookie-implant)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/400k0tl4dkwfdaur?svg=true)](https://ci.appveyor.com/project/mike10004/chrome-cookie-implant)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.mike10004/chrome-cookie-implant.svg)](https://repo1.maven.org/maven2/com/github/mike10004/chrome-cookie-implant/)
 
 Chrome Cookie Implant
