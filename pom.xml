@@ -69,6 +69,7 @@
                                     <!--suppress MavenModelInspection -->
                                     <wdm.gitHubTokenSecret>${env.GITHUB_TOKEN_SECRET}</wdm.gitHubTokenSecret>
                                     <chrome-cookie-implant.chrome.extraArgs>--no-sandbox</chrome-cookie-implant.chrome.extraArgs>
+                                    <chrome-cookie-implant.xvfb.waitMillis>5000</chrome-cookie-implant.xvfb.waitMillis>
                                 </systemPropertyVariables>
                             </configuration>
                         </plugin>

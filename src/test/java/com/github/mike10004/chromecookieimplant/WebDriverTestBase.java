@@ -1,5 +1,6 @@
 package com.github.mike10004.chromecookieimplant;
 
+import com.github.mike10004.xvfbmanager.DefaultXvfbController;
 import com.github.mike10004.xvfbtesting.XvfbRule;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -14,6 +15,7 @@ import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +29,9 @@ import java.util.List;
 public class WebDriverTestBase {
 
     private static final String SYSPROP_CHROME_EXTRA_ARGS = "chrome-cookie-implant.chrome.extraArgs";
+    private static final String SYSPROP_XVFB_WAIT_MILLIS = "chrome-cookie-implant.xvfb.waitMillis";
+    private static final int DEFAULT_XVFB_WAIT_MILLIS = 2000;
+    private static final long XVFB_POLL_INTERVAL_MILLIS = DefaultXvfbController.DEFAULT_POLL_INTERVAL_MS;
 
     private static File extensionFile;
     private static String extensionId;
@@ -49,7 +54,22 @@ public class WebDriverTestBase {
 
     @Before
     public void waitForDisplay() throws InterruptedException {
-        xvfb.getController().waitUntilReady();
+        int maxNumPolls = getXvfbMaxNumPolls();
+        xvfb.getController().waitUntilReady(XVFB_POLL_INTERVAL_MILLIS, maxNumPolls);
+    }
+
+    private static int getXvfbMaxNumPolls() {
+        String override = System.getProperty(SYSPROP_XVFB_WAIT_MILLIS);
+        int waitMillis = DEFAULT_XVFB_WAIT_MILLIS;
+        if (!Strings.isNullOrEmpty(override)) {
+            try {
+                waitMillis = Integer.parseInt(override);
+            } catch (NumberFormatException e) {
+                LoggerFactory.getLogger(WebDriverTestBase.class).warn("failed to parse user-specified xvfb wait", e);
+            }
+        }
+        int numPolls = Math.round((float) waitMillis / (float) XVFB_POLL_INTERVAL_MILLIS);
+        return numPolls;
     }
 
     @BeforeClass
