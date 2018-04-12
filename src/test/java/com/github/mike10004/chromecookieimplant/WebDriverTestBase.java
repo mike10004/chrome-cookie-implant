@@ -5,7 +5,6 @@ import com.github.mike10004.xvfbtesting.XvfbRule;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import io.github.bonigarcia.wdm.ChromeDriverManager;
 import io.github.mike10004.crxtool.BasicCrxParser;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -76,7 +75,7 @@ public class WebDriverTestBase {
     public static void setUpDriver() {
         String driverPath = System.getProperty("webdriver.chrome.driver");
         if (driverPath == null) {
-            ChromeDriverManager.getInstance().setup();
+            Chromedrivers.findBestVersion().setup();
         }
     }
 
