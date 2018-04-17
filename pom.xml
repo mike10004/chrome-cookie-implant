@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant</artifactId>
-    <version>1.5.11</version>
+    <version>1.5.12</version>
     <packaging>jar</packaging>
     <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
@@ -36,9 +36,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <xvfb-manager.version>0.16</xvfb-manager.version>
-        <selenium.version>3.9.1</selenium.version>
+        <selenium.version>3.11.0</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <crxtool.version>0.7</crxtool.version>
+        <crxtool.version>0.8</crxtool.version>
         <crxtool.outputFile>${project.build.outputDirectory}/chrome-cookie-implant.crx</crxtool.outputFile>
         <crxtool.privateKey>${chrome-cookie-implant-client.extension.key.file}</crxtool.privateKey>
     </properties>
@@ -231,15 +231,20 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>24.1-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.mike10004</groupId>
             <artifactId>xvfb-testing</artifactId>
             <version>${xvfb-manager.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.6-jre</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
@@ -249,19 +254,9 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
             <version>${slf4j.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.5</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

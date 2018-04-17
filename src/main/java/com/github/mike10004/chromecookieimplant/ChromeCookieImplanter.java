@@ -7,12 +7,10 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import io.github.mike10004.crxtool.CrxParser;
-import org.apache.http.client.utils.URIBuilder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -21,16 +19,18 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
@@ -43,6 +43,7 @@ public class ChromeCookieImplanter {
     public static final String QUERY_PARAM_IMPLANT = "implant";
     @VisibleForTesting
     static final String EXTENSION_RESOURCE_PATH = "/chrome-cookie-implant.crx";
+    private static final Gson DEFAULT_GSON = new Gson();
     private static final String IGNORED_PREFIX = "ignored:";
     public static final int DEFAULT_OUTPUT_TIMEOUT_SECONDS = 3;
     private static final Logger log = LoggerFactory.getLogger(ChromeCookieImplanter.class);
@@ -58,7 +59,7 @@ public class ChromeCookieImplanter {
 
     @VisibleForTesting
     protected ChromeCookieImplanter(ByteSource crxBytes) {
-        this(crxBytes, DEFAULT_OUTPUT_TIMEOUT_SECONDS, new Gson());
+        this(crxBytes, DEFAULT_OUTPUT_TIMEOUT_SECONDS, DEFAULT_GSON);
     }
 
     protected ChromeCookieImplanter(ByteSource crxBytes, int outputTimeoutSeconds, Gson gson) {
@@ -141,7 +142,7 @@ public class ChromeCookieImplanter {
      * @return the results
      * @see ResultExaminer#createDefault()
      */
-    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver) {
+    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver) {
         return implant(cookies, driver, ResultExaminer.createDefault());
     }
 
@@ -153,9 +154,12 @@ public class ChromeCookieImplanter {
      * @param resultExaminer the result examiner
      * @return the results
      */
-    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, ChromeDriver driver, ResultExaminer resultExaminer) {
+    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver, ResultExaminer resultExaminer) {
         requireNonNull(resultExaminer, "failureHandler");
-        URI manageUrl = buildImplantUriFromCookies(cookies.stream());
+        if (cookies.isEmpty()) {
+            return ImmutableList.of();
+        }
+        URI manageUrl = buildImplantUriFromCookies(ImmutableList.copyOf(cookies));
         driver.get(manageUrl.toString());
         CookieImplantOutput output = waitForCookieImplantOutput(driver, outputTimeoutSeconds);
         int numFailures = 0;
@@ -169,6 +173,7 @@ public class ChromeCookieImplanter {
         return ImmutableList.copyOf(output.implants);
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected <T> By elementTextRepresentsObject(By elementLocator, Class<T> deserializedType, Predicate<? super T> predicate) {
         return new By() {
             @Override
@@ -201,21 +206,45 @@ public class ChromeCookieImplanter {
         return output;
     }
 
-
-    protected URI buildImplantUriFromCookies(Stream<ChromeCookie> cookies) {
-        return buildImplantUriFromCookieJsons(cookies
-                .map(gson::toJson));
-    }
-
     protected String getExtensionId() {
         return extensionIdSupplier.get();
     }
 
-    protected URI buildImplantUriFromCookieJsons(Stream<String> cookieJsons) {
+    private static final String CHROME_EXTENSION_SCHEME = "chrome-extension";
+    private static final String IMPLANT_URL_PATH = "/manage.html";
+    private static final String URL_ENCODING_CHARSET = StandardCharsets.UTF_8.name();
+
+    /**
+     * Builds the implant URI from a cookie list.
+     * @param cookies cookies list; must be nonempty
+     * @return the URI
+     */
+    protected URI buildImplantUriFromCookies(List<ChromeCookie> cookies) {
+        checkArgument(!cookies.isEmpty(), "cookies list must be nonempty");
         try {
-            URIBuilder uriBuilder = new URIBuilder(URI.create("chrome-extension://" + getExtensionId() + "/manage.html"));
-            cookieJsons.forEach(cookieJson -> uriBuilder.addParameter(QUERY_PARAM_IMPLANT, cookieJson));
-            URI uri = uriBuilder.build();
+            StringBuilder s = new StringBuilder(512);
+            String host = getExtensionId();
+            s.append(CHROME_EXTENSION_SCHEME)
+                    .append("://")
+                    .append(host)
+                    .append(IMPLANT_URL_PATH)
+                    .append('?');
+            for (int i = 0; i < cookies.size(); i++) {
+                if (i > 0) {
+                    s.append('&');
+                }
+                ChromeCookie cookie = cookies.get(i);
+                String json = gson.toJson(cookie);
+                s.append(QUERY_PARAM_IMPLANT).append('='); // we know the param name does not need escaping
+                try {
+                    String paramValue = URLEncoder.encode(json, URL_ENCODING_CHARSET);
+                    s.append(paramValue);
+                } catch (UnsupportedEncodingException e) {
+                    // JRE must support US_ASCII
+                    throw new RuntimeException(e);
+                }
+            }
+            URI uri = new URI(s.toString());
             return uri;
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
