@@ -6,4 +6,6 @@ build_script:
 
     mvn --version
 
-    mvn --quiet --batch-mode -P travis install
+    echo "CHROMEDRIVER_VERSION=%CHROMEDRIVER_VERSION%"
+
+    mvn --quiet --batch-mode -P travis install -Dwdm.chromeDriverVersion=%CHROMEDRIVER_VERSION%
