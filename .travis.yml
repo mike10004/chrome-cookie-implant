@@ -2,4 +2,4 @@ language: java
 notifications:
   email: false
 install: mvn --quiet dependency:resolve
-script: mvn --quiet --batch-mode -P travis verify -Dwdm.chromeDriverVersion=$CHROMEDRIVER_VERSION
+script: mvn --quiet --batch-mode -P travis verify
