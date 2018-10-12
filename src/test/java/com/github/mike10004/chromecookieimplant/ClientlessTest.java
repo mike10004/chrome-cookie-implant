@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public class ClientlessTest extends WebDriverTestBase {
 
-    private static final boolean debug = false;
+    private static final boolean debug = true;
 
     @Test
     public void testSetNoCookies_raw() throws Exception {
@@ -45,8 +45,12 @@ public class ClientlessTest extends WebDriverTestBase {
                     System.out.println(outputJson);
                     System.out.println();
                 }
-                String status = jsonParser.parse(outputJson).getAsJsonObject().get("status").getAsString();
-                return CookieProcessingStatus.all_implants_processed.toString().equals(status);
+                if (!outputJson.isEmpty()) {
+                    String status = jsonParser.parse(outputJson).getAsJsonObject().get("status").getAsString();
+                    return CookieProcessingStatus.all_implants_processed.toString().equals(status);
+                } else {
+                    return false;
+                }
             }
         };
     }

@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 public class WebDriverTestBase {
 
@@ -50,7 +51,9 @@ public class WebDriverTestBase {
     }
 
     @Rule
-    public XvfbRule xvfb = XvfbRule.builder().build();
+    public XvfbRule xvfb = XvfbRule.builder()
+            .disabled(WebDriverTestBase::isVirtualDisplayDisabled)
+            .build();
 
     @Before
     public void waitForDisplay() throws InterruptedException {
@@ -95,8 +98,9 @@ public class WebDriverTestBase {
         ChromeOptions options = new ChromeOptions();
         options.addArguments(getChromeExtraArgs());
         options.addExtensions(extensionFile);
+        Map<String, String> environment = xvfb.getController().newEnvironment();
         ChromeDriverService service = new ChromeDriverService.Builder()
-                .withEnvironment(xvfb.getController().newEnvironment())
+                .withEnvironment(environment)
                 .build();
         ChromeDriver driver = new ChromeDriver(service, options);
         return driver;
@@ -105,5 +109,10 @@ public class WebDriverTestBase {
     private List<String> getChromeExtraArgs() {
         String tokenStr = Strings.nullToEmpty(System.getProperty(SYSPROP_CHROME_EXTRA_ARGS));
         return Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings().splitToList(tokenStr);
+    }
+
+    private static boolean isVirtualDisplayDisabled() {
+        String val = System.getProperty("java.awt.headless");
+        return !Boolean.parseBoolean(val);
     }
 }

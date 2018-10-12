@@ -9,13 +9,14 @@ import org.junit.Test;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.math.BigDecimal;
-import java.net.URL;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ChromeCookieImplanterTest extends WebDriverTestBase {
 
@@ -35,7 +36,7 @@ public class ChromeCookieImplanterTest extends WebDriverTestBase {
             List<CookieImplantResult> results = implanter.implant(Collections.singleton(cookie), driver);
             assertEquals("results length", 1, results.size());
             CookieImplantResult result = results.get(0);
-            assertEquals("result.success", true, result.success);
+            assertTrue("result.success", result.success);
             // now visit httpbin.org and confirm that the cookie is automatically sent by the browser
             driver.get("http://httpbin.org/get");
             String httpbinHtml = driver.getPageSource();
@@ -75,7 +76,7 @@ public class ChromeCookieImplanterTest extends WebDriverTestBase {
             List<CookieImplantResult> results = implanter.implant(Collections.singleton(cookie), driver);
             assertEquals("results length", 1, results.size());
             CookieImplantResult result = results.get(0);
-            assertEquals("result.success", false, result.success);
+            assertFalse("result.success", result.success);
             assertEquals("result.message", "ignored:expired", result.message);
         } finally {
             driver.quit();

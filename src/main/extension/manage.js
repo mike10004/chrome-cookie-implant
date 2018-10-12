@@ -1,4 +1,5 @@
-(function(){
+(function(browser){
+
     /**
      * Value class that represents the result of multiple implant attempts.
      * @param status overall status
@@ -265,4 +266,4 @@
             setReadableResult('No processing performed');
         }
     });
-})();
+})(window['browser'] || window['chrome']);
