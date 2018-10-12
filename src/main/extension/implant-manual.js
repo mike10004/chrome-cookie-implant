@@ -1,15 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var exampleCookie = {
+    const exampleCookie = {
         url: 'https://www.example.com/',
         name: 'foo'
     };
-    var cookieJsonTextArea = document.getElementById('cookie-json');
+    const cookieJsonTextArea = document.getElementById('cookie-json');
     cookieJsonTextArea.innerText = JSON.stringify(exampleCookie);
-    var messageDiv = document.getElementById('message');
-    var implantButton = document.getElementById('implant');
+    const messageDiv = document.getElementById('message');
+    const implantButton = document.getElementById('implant');
     implantButton.onclick = function() {
-        var cookiesJson = cookieJsonTextArea.value;
-        var cookieOrCookies;
+        const cookiesJson = cookieJsonTextArea.value;
+        let cookieOrCookies;
         try {
             cookieOrCookies = JSON.parse(cookiesJson);
         } catch (err) {
@@ -17,14 +17,14 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.innerText = 'JSON parse error: ' + err.message;
         }
         console.debug("implant button onclick", cookieOrCookies);
-        var cookies = cookieOrCookies;
+        let cookies = cookieOrCookies;
         if (!Array.isArray(cookieOrCookies)) {
             cookies = [cookieOrCookies];
         }
-        var url = 'manage.html?';
+        let url = 'manage.html?';
         cookies.forEach(cookie => {
-            var cookieJson = JSON.stringify(cookie);
-            var cookieJsonEncoded = encodeURIComponent(cookieJson);
+            const cookieJson = JSON.stringify(cookie);
+            const cookieJsonEncoded = encodeURIComponent(cookieJson);
             url += ('implant=' + cookieJsonEncoded + '&');
         });
         location.href = url;

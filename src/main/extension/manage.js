@@ -1,34 +1,51 @@
+/**
+ * Value class that represents the result of multiple implant attempts.
+ * @param status overall status
+ * @param implants individual implant
+ * @constructor
+ */
 function CookieImplantOutput(status, implants) {
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * See CookieProcessingStatus for possible values.
+     */
     this.status = status;
     this.implants = implants || [];
 }
 
-var CookieProcessingStatus = {
+/**
+ * Enumeration of constants representing possible values for the status field of the CookieImplantOutput class.
+ */
+const CookieProcessingStatus = {
     not_yet_processed: 'not_yet_processed',
     some_implants_processed: 'some_implants_processed',
     all_implants_processed: 'all_implants_processed',
-    values: function() {
+    values: function () {
         return ['not_yet_processed', 'some_implants_processed', 'all_implants_processed'];
     }
 };
 
 function createStageArray() {
-    var stages = CookieProcessingStatus.values();
+    const stages = CookieProcessingStatus.values();
     stages.first = stages[0];
     stages.middle = stages[1];
     stages.last = stages[stages.length - 1];
     return stages;
 }
 
-// https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+/**
+ * Parses a query string into an object mapping parameter names to values.
+ * Inspired by https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+ */
 function parseQuery() {
-    var query = window.location.search.substring(1);
-    var vars = query.split("&");
-    var obj = {};
-    for (var i=0;i<vars.length;i++) {
+    const query = window.location.search.substring(1);
+    const vars = query.split("&");
+    const obj = {};
+    for (let i=0; i<vars.length; i++) {
         if (vars[i]) {
-            var pair = vars[i].split("=", 2);
-            var list = obj[pair[0]];
+            const pair = vars[i].split("=", 2);
+            let list = obj[pair[0]];
             if (typeof(list) === 'undefined') {
                 obj[pair[0]] = list = [];
             }
@@ -42,12 +59,12 @@ function parseQuery() {
  * Parse a cookie seed.
  * @param {string} implantSeed - the implant seed
  * @param {object} query - the query object, which may specify options of how to interpret the seed
- * @param {function(string,object,err)} - function to which bad seeds are passed
+ * @param {function(string,object,err)} [badSeedHandler] function to which bad seeds are passed
  * @returns {object|boolean} - the cookie, or false if the seed could not be parsed
  */
 function parseImplantSeed(implantSeed, query, badSeedHandler) {
-    badSeedHandler = badSeedHandler || (x => false);
-    var result;
+    badSeedHandler = badSeedHandler || (() => false);
+    let result;
     try {
         result = JSON.parse(implantSeed);
     } catch (err) {
@@ -63,7 +80,7 @@ function parseImplantSeed(implantSeed, query, badSeedHandler) {
  * @param {CookieImplantOutput} output output object
  */
 function printOutput(output) {
-    var outputDiv = document.getElementById('output');
+    const outputDiv = document.getElementById('output');
     outputDiv.innerText = JSON.stringify(output, null, 2);
 }
 
@@ -86,42 +103,43 @@ function parseBoolean(value) {
 }
 
 function isExpired(cookie, referenceDate) {
-    var queryTimeInSeconds = cookie.expirationDate;
+    const queryTimeInSeconds = cookie.expirationDate;
     if (typeof(queryTimeInSeconds) === 'number') {
-        var referenceTimeInSeconds = referenceDate.getTime() / 1000;
-        var expired = queryTimeInSeconds <= referenceTimeInSeconds; 
+        const referenceTimeInSeconds = referenceDate.getTime() / 1000;
+        const expired = queryTimeInSeconds <= referenceTimeInSeconds;
         return expired;
     }
     return false;
 }
 
 /**
+ * Processes implant attempts.
  * @param {object} input parsed query string
- * @param {function(number, object, boolean, object, string)} setCookieCallback the cookie callback; 
+ * @param {function(number, number, object, boolean, object, string)} setCookieCallback the cookie callback;
  *      parameters are cookie index (integer), input cookie object (or null), implant success (boolean), 
  *      output cookie object (or null if !success), error info (string)
  */
 function processImplants(input, setCookieCallback) {
-    var disableExpiryCheck = parseBoolean(input['disable_expiry_check']);
-    var cookieImplants = input['implant'] || [];
-    var numImplantSeeds = cookieImplants.length;
-    var newCookies = cookieImplants
+    let disableExpiryCheck = parseBoolean(input['disable_expiry_check']);
+    const cookieImplants = input['implant'] || [];
+    const numImplantSeeds = cookieImplants.length;
+    const newCookies = cookieImplants
         .map(implantSeed => parseImplantSeed(implantSeed, input));
-    var numGoodCookies = newCookies.filter(c => !!c).length;
+    const numGoodCookies = newCookies.filter(c => !!c).length;
     console.debug(numGoodCookies, " good cookies among ", numImplantSeeds, " implant seeds");
     newCookies.forEach((newCookie, index) => {
         if (newCookie) {
             try {
-                var now = new Date();
+                const now = new Date();
                 if (!disableExpiryCheck && isExpired(newCookie, now)) {
                     setCookieCallback(index, numImplantSeeds, newCookie, false, null, 'ignored:expired');
                 } else {
-                    chrome.cookies.set(newCookie, outCookie => {
+                    browser.cookies.set(newCookie, outCookie => {
                         if (isObject(outCookie)) {
                             setCookieCallback(index, numImplantSeeds, newCookie, true, outCookie, "OK");
                         } else {
-                            console.info("chrome.cookies.set failed", chrome.runtime.lastError);
-                            var message = (chrome.runtime.lastError || {}).message;
+                            console.info("chrome.cookies.set failed", browser.runtime.lastError);
+                            const message = (browser.runtime.lastError || {}).message;
                             setCookieCallback(index, numImplantSeeds, newCookie, false, outCookie, message || "failed:cookies_set_failed_without_revealing_why");
                         }
                     });
@@ -138,9 +156,9 @@ function processImplants(input, setCookieCallback) {
 }
 
 function createTableCell(value, wrapTextInInput) {
-    var cell = document.createElement('td');
+    const cell = document.createElement('td');
     if (wrapTextInInput) {
-        var input = document.createElement('input');
+        const input = document.createElement('input');
         input.type = 'text';
         input.value = value;
         cell.appendChild(input);
@@ -151,7 +169,7 @@ function createTableCell(value, wrapTextInInput) {
 }
 
 function setReadableResult(result) {
-    var resultDiv = document.getElementById('result');
+    const resultDiv = document.getElementById('result');
     if (typeof(result) === 'string') {
         resultDiv.innerHTML = result;
     } else {
@@ -163,15 +181,15 @@ function setReadableResult(result) {
 }
 
 function createInputTable(query) {
-    var inputTable = document.createElement('table');
+    const inputTable = document.createElement('table');
     inputTable.id = 'input-params';
-    var numQueryParams = 0;
-    for (var name in query) {
-        var values = query[name];
+    let numQueryParams = 0;
+    for (const name of Object.keys(query)) {
+        const values = query[name];
         values.forEach(value => {
-            var nameCell = createTableCell(name);
-            var valueCell = createTableCell(value, true);
-            var row = document.createElement('tr');
+            const nameCell = createTableCell(name);
+            const valueCell = createTableCell(value, true);
+            const row = document.createElement('tr');
             [nameCell, valueCell].forEach(cell => row.appendChild(cell));
             inputTable.appendChild(row);
             numQueryParams++;
@@ -182,7 +200,7 @@ function createInputTable(query) {
 }
 
 function createResultTableHeader() {
-    var resultTableHeader = document.createElement('tr');
+    const resultTableHeader = document.createElement('tr');
     ['#', 'Domain', 'Path', 'Name', 'Value']
             .map(t => createTableCell(t, false))
             .forEach(c => resultTableHeader.appendChild(c));
@@ -190,34 +208,34 @@ function createResultTableHeader() {
 }
 
 function createResultTableRow(index, newCookie, success, outCookie, message) {
-    var cookieInfoCells = isObject(outCookie)
-                ? [createTableCell(index), 
-                    createTableCell(outCookie.domain), 
-                    createTableCell(outCookie.path), 
-                    createTableCell(outCookie.name), 
-                    createTableCell(outCookie.value, true)]
-                : [index, '', '', '', ''].map(createTableCell);
-    var row = document.createElement('tr');
+    const cookieInfoCells = isObject(outCookie)
+        ? [createTableCell(index),
+            createTableCell(outCookie.domain),
+            createTableCell(outCookie.path),
+            createTableCell(outCookie.name),
+            createTableCell(outCookie.value, true)]
+        : [index, '', '', '', ''].map(createTableCell);
+    const row = document.createElement('tr');
     cookieInfoCells.forEach(c => row.appendChild(c));
     return row;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var query = parseQuery();
-    var STAGES = createStageArray();
-    var inputTable = createInputTable(query);
-    var inputDiv = document.getElementById('input');
+    const query = parseQuery();
+    const STAGES = createStageArray();
+    const inputTable = createInputTable(query);
+    const inputDiv = document.getElementById('input');
     if (inputTable.numQueryParams > 0) {
         inputDiv.appendChild(inputTable);
     } else {
         inputDiv.innerText = 'No cookie implants requested';
     }
-    var resultTable = document.createElement('table');
+    const resultTable = document.createElement('table');
     resultTable.id = 'implant-results';
-    var output = new CookieImplantOutput(STAGES.first);
+    const output = new CookieImplantOutput(STAGES.first);
     printOutput(output);
-    var resultTableHeader; 
-    var numCookies = processImplants(query, (index, numImplantSeeds, newCookie, success, outCookie, s) => {
+    let resultTableHeader;
+    const numCookies = processImplants(query, (index, numImplantSeeds, newCookie, success, outCookie, s) => {
         console.debug('chrome.cookies.set', index, newCookie, success, outCookie, s);
         output.implants.push({
             'index': index,
@@ -225,13 +243,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'savedCookie': outCookie,
             'message': s || null
         });
-        var row = createResultTableRow(index, newCookie, success, outCookie, s);
+        const row = createResultTableRow(index, newCookie, success, outCookie, s);
         if (typeof(resultTableHeader) === 'undefined') {
             resultTableHeader = createResultTableHeader();
             resultTable.appendChild(resultTableHeader);
         }
         resultTable.appendChild(row);
-        if (output.implants.length == numImplantSeeds) {
+        if (output.implants.length === numImplantSeeds) {
             output.status = STAGES.last;
             printOutput(output);
             setReadableResult(resultTable);

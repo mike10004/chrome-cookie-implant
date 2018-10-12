@@ -11,25 +11,25 @@
  *   is found.
  */
 function getCurrentTabUrl(callback) {
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
+    const queryInfo = {
+        active: true,
+        currentWindow: true
+    };
 
-  chrome.tabs.query(queryInfo, function(tabs) {
-    var tab = tabs[0];
-    var url = tab.url;
-    console.assert(typeof url == 'string', 'tab.url should be a string');
+    browser.tabs.query(queryInfo, function(tabs) {
+      const tab = tabs[0];
+      let url = tab.url;
+      console.assert(typeof url === 'string', 'tab.url should be a string');
     callback(url);
   });
 
 }
 
-var renderStatus = console.debug;
+const renderStatus = console.debug;
 
 function parseHost(url) {
-  var a = document.createElement('a');
-  a.href = url;
+    const a = document.createElement('a');
+    a.href = url;
   return a.host;
 }
 
@@ -40,9 +40,9 @@ function isManageable(host) {
 document.addEventListener('DOMContentLoaded', function() {
   getCurrentTabUrl(function(url) {
     renderStatus('Popup loaded');
-    var manageCurrentLink = document.getElementById('manage-current');
-    var host = parseHost(url);
-    renderStatus('host', host);
+      const manageCurrentLink = document.getElementById('manage-current');
+      const host = parseHost(url);
+      renderStatus('host', host);
     if (isManageable(host)) {
       manageCurrentLink.href = manageCurrentLink.href + encodeURIComponent(host);
       manageCurrentLink.hidden = false;
