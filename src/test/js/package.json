@@ -14,7 +14,7 @@
   "license": "MIT",
   "homepage": "https://github.com/mike10004/chrome-cookie-implant",
   "dependencies": {
-    "chromedriver": "^2.34.0",
+    "chromedriver": "^2.42.0",
     "selenium-webdriver": "^3.6.0"
   }
 }
