@@ -3,7 +3,7 @@
 
   "name": "Cookie Implant",
   "description": "Add cookies to your Chrome profile",
-  "version": "1.5",
+  "version": "1.6",
 
   "browser_action": {
     "default_icon": "icon.png",
