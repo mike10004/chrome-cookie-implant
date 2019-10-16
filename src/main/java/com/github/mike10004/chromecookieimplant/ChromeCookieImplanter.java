@@ -2,7 +2,6 @@ package com.github.mike10004.chromecookieimplant;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
@@ -28,6 +27,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -144,7 +144,7 @@ public class ChromeCookieImplanter {
      * @return the results
      * @see ResultExaminer#createDefault()
      */
-    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver) {
+    public List<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver) {
         return implant(cookies, driver, ResultExaminer.createDefault());
     }
 
@@ -154,14 +154,14 @@ public class ChromeCookieImplanter {
      * @param cookies the cookies
      * @param driver the webdriver
      * @param resultExaminer the result examiner
-     * @return the results
+     * @return an immutable list of results
      */
-    public ImmutableList<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver, ResultExaminer resultExaminer) {
+    public List<CookieImplantResult> implant(Collection<ChromeCookie> cookies, WebDriver driver, ResultExaminer resultExaminer) {
         requireNonNull(resultExaminer, "failureHandler");
         if (cookies.isEmpty()) {
-            return ImmutableList.of();
+            return Collections.emptyList();
         }
-        URI manageUrl = buildImplantUriFromCookies(ImmutableList.copyOf(cookies));
+        URI manageUrl = buildImplantUriFromCookies(new ArrayList<>(cookies));
         driver.get(manageUrl.toString());
         CookieImplantOutput output = waitForCookieImplantOutput(driver, outputTimeoutSeconds);
         int numFailures = 0;
@@ -172,7 +172,7 @@ public class ChromeCookieImplanter {
             resultExaminer.examine(result);
         }
         log.debug("{} of {} cookies implanted using implant extension", cookies.size() - numFailures, cookies.size());
-        return ImmutableList.copyOf(output.implants);
+        return Collections.unmodifiableList(output.implants);
     }
 
     @SuppressWarnings("SameParameterValue")
