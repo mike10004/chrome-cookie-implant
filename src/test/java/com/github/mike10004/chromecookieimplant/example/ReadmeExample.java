@@ -3,7 +3,7 @@ package com.github.mike10004.chromecookieimplant.example;
 import com.github.mike10004.chromecookieimplant.ChromeCookie;
 import com.github.mike10004.chromecookieimplant.ChromeCookieImplanter;
 import com.github.mike10004.chromecookieimplant.CookieImplantResult;
-import io.github.bonigarcia.wdm.ChromeDriverManager;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
@@ -16,7 +16,7 @@ public class ReadmeExample {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void main(String[] args) throws Exception {
-        ChromeDriverManager.getInstance().setup();
+        WebDriverManager.chromedriver().setup();
         File crxFile = File.createTempFile("chrome-cookie-implant", ".crx");
         ChromeCookieImplanter implanter = new ChromeCookieImplanter();
         try (OutputStream out = new FileOutputStream(crxFile)) {
