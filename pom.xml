@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant</artifactId>
-    <version>1.5.14</version>
+    <version>1.5.15-SNAPSHOT</version>
     <packaging>jar</packaging>
     <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
@@ -35,12 +35,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <xvfb-manager.version>0.16</xvfb-manager.version>
-        <selenium.version>3.11.0</selenium.version>
+        <xvfb-manager.version>0.19</xvfb-manager.version>
+        <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <crxtool.version>0.12</crxtool.version>
+        <crxtool.version>0.15</crxtool.version>
         <crxtool.outputFile>${project.build.outputDirectory}/chrome-cookie-implant.crx</crxtool.outputFile>
-        <crxtool.privateKey>${chrome-cookie-implant-client.extension.key.file}</crxtool.privateKey>
+        <userExtensionKey.file>${user.home}/.ssh/chrome-cookie-implant-client.pem</userExtensionKey.file>
     </properties>
 
     <distributionManagement>
@@ -64,12 +64,6 @@
                             <artifactId>maven-surefire-plugin</artifactId>
                             <configuration>
                                 <systemPropertyVariables>
-                                    <!--suppress MavenModelInspection -->
-                                    <wdm.gitHubTokenName>${env.GITHUB_TOKEN_NAME}</wdm.gitHubTokenName>
-                                    <!--suppress MavenModelInspection -->
-                                    <wdm.gitHubTokenSecret>${env.GITHUB_TOKEN_SECRET}</wdm.gitHubTokenSecret>
-                                    <!--suppress MavenModelInspection -->
-                                    <wdm.chromeDriverVersion>${env.CHROMEDRIVER_VERSION}</wdm.chromeDriverVersion>
                                     <chrome-cookie-implant.chrome.extraArgs>--no-sandbox</chrome-cookie-implant.chrome.extraArgs>
                                     <chrome-cookie-implant.xvfb.waitMillis>5000</chrome-cookie-implant.xvfb.waitMillis>
                                 </systemPropertyVariables>
@@ -79,6 +73,17 @@
                 </pluginManagement>
             </build>
         </profile>
+        <profile>
+            <id>user-extension-key</id>
+            <activation>
+                <file>
+                    <exists>${userExtensionKey.file}</exists>
+                </file>
+            </activation>
+            <properties>
+                <crxtool.privateKey>${userExtensionKey.file}</crxtool.privateKey>
+            </properties>
+        </profile>
     </profiles>
 
     <build>
@@ -86,7 +91,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.7.0</version>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -99,10 +104,16 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.0</version>
+                    <version>3.0.0-M3</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                            <!--suppress MavenModelInspection -->
+                            <wdm.gitHubTokenName>${env.GITHUB_TOKEN_NAME}</wdm.gitHubTokenName>
+                            <!--suppress MavenModelInspection -->
+                            <wdm.gitHubTokenSecret>${env.GITHUB_TOKEN_SECRET}</wdm.gitHubTokenSecret>
+                            <!--suppress MavenModelInspection -->
+                            <wdm.chromeDriverVersion>${env.CHROMEDRIVER_VERSION}</wdm.chromeDriverVersion>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
@@ -115,6 +126,14 @@
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>1.6.7</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <configuration>
+                        <source>8</source>
+                        <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -235,7 +254,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>26.0-jre</version>
+            <version>28.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -251,7 +270,7 @@
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>2.1.0</version>
+            <version>3.7.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
