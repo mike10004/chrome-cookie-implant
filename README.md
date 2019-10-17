@@ -2,8 +2,7 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/400k0tl4dkwfdaur?svg=true)](https://ci.appveyor.com/project/mike10004/chrome-cookie-implant)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.mike10004/chrome-cookie-implant.svg)](https://repo1.maven.org/maven2/com/github/mike10004/chrome-cookie-implant/)
 
-Chrome Cookie Implant
-=====================
+# Chrome Cookie Implant
 
 This is a Chrome extension that allows you to execute an HTTP GET request to
 add cookies to your Chrome profile. The request is made to a `chrome-extension://` URL
@@ -18,15 +17,14 @@ for a list of properties a cookie can have.
 The companion Java client library uses Selenium to make the GET request to 
 implant cookies.
 
-Maven
------
+## Maven
 
 The Java client library (including the extension):
 
     <dependency>
         <groupId>com.github.mike10004</groupId>
         <artifactId>chrome-cookie-implant</artifactId>
-        <version>1.5.11</version>
+        <version>1.5.15</version>
     </dependency>
 
 If you want just the Chrome extension:
@@ -34,12 +32,11 @@ If you want just the Chrome extension:
     <dependency>
         <groupId>com.github.mike10004</groupId>
         <artifactId>chrome-cookie-implant</artifactId>
-        <version>1.5.11</version>
+        <version>1.5.15</version>
         <type>crx</type>
     </dependency>
 
-Using the extension
--------------------
+## Using the extension
 
 You can use the provided Java client library to install the extension and 
 implant cookies, or you can use the extension in any language by grabbing the 
@@ -73,7 +70,7 @@ CRX artifact, installing it, and making your own HTTP requests.
 
 ### With Selenium in another language
 
-You can grab the [CRX artifact](https://repo1.maven.org/maven2/com/github/mike10004/chrome-cookie-implant/)
+You can grab the [CRX artifact](https://repo.maven.apache.org/maven2/com/github/mike10004/chrome-cookie-implant/)
 from the Maven repository and provide it to a webdriver in your preferred 
 environment. 
 
