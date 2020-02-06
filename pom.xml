@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant</artifactId>
-    <version>1.5.16-SNAPSHOT</version>
+    <version>1.5.16</version>
     <packaging>jar</packaging>
     <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
