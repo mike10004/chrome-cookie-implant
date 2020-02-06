@@ -6,7 +6,7 @@
     <name>chrome-cookie-implant</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>chrome-cookie-implant</artifactId>
-    <version>1.5.15</version>
+    <version>1.5.16-SNAPSHOT</version>
     <packaging>jar</packaging>
     <description>Chrome extension that implants cookies and Java client library to use the extension with Selenium</description>
     <url>https://github.com/mike10004/chrome-cookie-implant</url>
@@ -38,9 +38,10 @@
         <xvfb-manager.version>0.19</xvfb-manager.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <crxtool.version>0.15</crxtool.version>
+        <crxtool.version>0.16</crxtool.version>
         <crxtool.outputFile>${project.build.outputDirectory}/chrome-cookie-implant.crx</crxtool.outputFile>
         <userExtensionKey.file>${user.home}/.ssh/chrome-cookie-implant-client.pem</userExtensionKey.file>
+        <surefire.skip>false</surefire.skip>
     </properties>
 
     <distributionManagement>
@@ -84,6 +85,12 @@
                 <crxtool.privateKey>${userExtensionKey.file}</crxtool.privateKey>
             </properties>
         </profile>
+        <profile>
+            <id>skip-tests</id>
+            <properties>
+                <surefire.skip>true</surefire.skip>
+            </properties>
+        </profile>
     </profiles>
 
     <build>
@@ -106,6 +113,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M3</version>
                     <configuration>
+                        <skipTests>${surefire.skip}</skipTests>
                         <systemPropertyVariables>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                             <!--suppress MavenModelInspection -->
